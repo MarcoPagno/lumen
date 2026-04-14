@@ -1,2 +1,3 @@
-# lumen
+# Lumen
+
 Implementation of Lumen website
