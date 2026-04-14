@@ -1,0 +1,30 @@
+{
+  "name": "lumen",
+  "version": "1.0.0",
+  "description": "Implementation of Lumen website",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "prepare": "husky",
+    "commit": "cz"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "next": "16.2.3",
+    "react": "19.2.5",
+    "react-dom": "19.2.5"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "commitizen": "4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "9.1.7"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
