@@ -23,7 +23,7 @@ function DatabaseData() {
     <>
       <h2>Database</h2>
       {isLoading ? (
-        <div>Carregando...</div>
+        <div>Loading...</div>
       ) : (
         <>
           <div>Version: {data.dependencies.database.version}</div>
@@ -35,8 +35,7 @@ function DatabaseData() {
           </div>
           <br />
           <div>
-            Última atualização:{" "}
-            {new Date(data.updated_at).toLocaleString("pt-br")}
+            Last update: {new Date(data.updated_at).toLocaleString("pt-br")}
           </div>
         </>
       )}
