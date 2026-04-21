@@ -4,9 +4,13 @@
   "description": "Implementation of Lumen website",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
-    "test": "concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand\"",
+    "dev": "npm run services:up && npm run services:wait:database && next dev",
+    "test": "npm run services:up && concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand\"",
     "test:watch": "jest --watchAll --runInBand --verbose",
+    "services:up": "docker compose -f infra/compose.yaml up -d",
+    "services:stop": "docker compose -f infra/compose.yaml stop",
+    "services:down": "docker compose -f infra/compose.yaml down",
+    "services:wait:database": "node infra/scripts/wait-for-postgres.js",
     "lint:prettier:check": "prettier --check .",
     "lint:prettier:fix": "prettier --write .",
     "prepare": "husky",
@@ -22,7 +26,8 @@
     "node-pg-migrate": "8.0.4",
     "pg": "8.20.0",
     "react": "19.2.5",
-    "react-dom": "19.2.5"
+    "react-dom": "19.2.5",
+    "swr": "^2.4.1"
   },
   "devDependencies": {
     "@commitlint/cli": "20.5.0",
