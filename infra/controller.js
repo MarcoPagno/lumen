@@ -11,9 +11,9 @@ function onErrorHandler(error, request, response) {
     cause: error,
   });
 
-  console.log(publicErrorObject);
+  console.error(publicErrorObject);
 
-  response.error(publicErrorObject.statusCode).json(publicErrorObject);
+  response.status(publicErrorObject.statusCode).json(publicErrorObject);
 }
 
 const controller = {
