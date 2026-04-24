@@ -4,9 +4,15 @@ const dotenv = require("dotenv");
 dotenv.config({ path: ".env.development" });
 
 const createJestConfig = nextJest();
-const jestConfig = createJestConfig({
+
+const jestConfig = {
   moduleDirectories: ["node_modules", "<rootDir>"],
   testTimeout: 60000,
-});
+  transformIgnorePatterns: ["/node_modules/(?!node-pg-migrate)/"],
+};
 
-module.exports = jestConfig;
+module.exports = async () => {
+  const config = await createJestConfig(jestConfig)();
+  config.transformIgnorePatterns = ["/node_modules/(?!node-pg-migrate)/"];
+  return config;
+};
