@@ -1,10 +1,10 @@
 export class InternalServerError extends Error {
   constructor({ cause, statusCode }) {
-    super("An internal unexpected error occurred", {
+    super("An unexpected internal error occurred", {
       cause,
     });
     this.name = "InternalServerError";
-    this.action = "Get in contact with the support";
+    this.action = "Contact support if the issue persists";
     this.statusCode = statusCode || 500;
   }
 
@@ -20,11 +20,11 @@ export class InternalServerError extends Error {
 
 export class ServiceError extends Error {
   constructor({ cause, message }) {
-    super(message || "Service unavailable now", {
+    super(message || "Service is currently unavailable", {
       cause,
     });
     this.name = "ServiceError";
-    this.action = "Verify if the service is available";
+    this.action = "Try again later or check service status";
     this.statusCode = 500;
   }
 
@@ -40,10 +40,50 @@ export class ServiceError extends Error {
 
 export class MethodNotAllowedError extends Error {
   constructor() {
-    super("Method not allowed to this endpoint");
+    super("HTTP method not allowed for this endpoint");
     this.name = "MethodNotAllowedError";
-    this.action = "Verify if the HTTP method is valid to this endpoint";
+    this.action = "Use a valid HTTP method for this endpoint";
     this.statusCode = 405;
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      action: this.action,
+      status_code: this.statusCode,
+    };
+  }
+}
+
+export class ValidationError extends Error {
+  constructor({ cause, message, action }) {
+    super(message || "Invalid request data", {
+      cause,
+    });
+    this.name = "ValidationError";
+    this.action = action || "Review the input data and try again";
+    this.statusCode = 400;
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      action: this.action,
+      status_code: this.statusCode,
+    };
+  }
+}
+
+export class NotFoundError extends Error {
+  constructor({ cause, message, action }) {
+    super(message || "Resource not found", {
+      cause,
+    });
+    this.name = "NotFoundError";
+    this.action = action || "Verify the request parameters and try again";
+    this.statusCode = 404;
   }
 
   toJSON() {

@@ -8,7 +8,7 @@ beforeAll(async () => {
 describe("POST /api/v1/migrations", () => {
   describe("Anonymous user", () => {
     describe("Running pending migrations", () => {
-      test("For the first time", async () => {
+      test("returns 201 and runs pending migrations", async () => {
         const response = await fetch(
           "http://localhost:3000/api/v1/migrations",
           {
@@ -24,7 +24,7 @@ describe("POST /api/v1/migrations", () => {
         expect(responseBody[0].timestamp).toBeGreaterThan(0);
       });
 
-      test("For the second time", async () => {
+      test("returns 200 and no migrations when already up to date", async () => {
         const response = await fetch(
           "http://localhost:3000/api/v1/migrations",
           {

@@ -6,7 +6,7 @@ beforeAll(async () => {
 
 describe("POST /api/v1/status", () => {
   describe("Anonymous user", () => {
-    test("Retrieving current system status", async () => {
+    test("returns 405 when trying to POST against /status", async () => {
       const response = await fetch("http://localhost:3000/api/v1/status", {
         method: "POST",
       });
@@ -16,8 +16,8 @@ describe("POST /api/v1/status", () => {
 
       expect(responseBody).toEqual({
         name: "MethodNotAllowedError",
-        message: "Method not allowed to this endpoint",
-        action: "Verify if the HTTP method is valid to this endpoint",
+        message: "HTTP method not allowed for this endpoint",
+        action: "Use a valid HTTP method for this endpoint",
         status_code: 405,
       });
     });
