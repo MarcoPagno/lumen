@@ -1,3 +1,4 @@
+import { version as uuidVersion } from "uuid";
 import orchestrator from "tests/orchestrator.js";
 
 beforeAll(async () => {
@@ -9,22 +10,12 @@ beforeAll(async () => {
 describe("GET /api/v1/users/[username]", () => {
   describe("Anonymous user", () => {
     test("returns user when username matches exactly", async () => {
-      const response1 = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        type: "application/json",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: "testSearch",
-          email: "testSearch@gmail.com",
-          password: "password123",
-        }),
+      const createdUser = await orchestrator.createUser({
+        username: "userTest",
       });
-      expect(response1.status).toBe(201);
 
       const response = await fetch(
-        "http://localhost:3000/api/v1/users/testSearch",
+        "http://localhost:3000/api/v1/users/userTest",
         {
           method: "GET",
         },
@@ -35,31 +26,21 @@ describe("GET /api/v1/users/[username]", () => {
 
       expect(responseBody).toEqual({
         id: responseBody.id,
-        username: "testSearch",
-        email: "testSearch@gmail.com",
-        password: "password123",
+        username: "userTest",
+        email: createdUser.email,
+        password: responseBody.password,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
     });
 
     test("returns user when username matches ignoring case", async () => {
-      const response1 = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        type: "application/json",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: "testSearchCase",
-          email: "testSearchCase@gmail.com",
-          password: "password123",
-        }),
+      const createdUser = await orchestrator.createUser({
+        username: "userTestDifferent",
       });
-      expect(response1.status).toBe(201);
 
       const response = await fetch(
-        "http://localhost:3000/api/v1/users/TestSearchCASE",
+        "http://localhost:3000/api/v1/users/userTestDifferent",
         {
           method: "GET",
         },
@@ -70,12 +51,15 @@ describe("GET /api/v1/users/[username]", () => {
 
       expect(responseBody).toEqual({
         id: responseBody.id,
-        username: "testSearchCase",
-        email: "testSearchCase@gmail.com",
-        password: "password123",
+        username: "userTestDifferent",
+        email: createdUser.email,
+        password: responseBody.password,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
+      expect(uuidVersion(responseBody.id)).toBe(4);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
     });
 
     test("returns 404 when username does not exist", async () => {
