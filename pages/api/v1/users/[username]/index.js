@@ -1,6 +1,6 @@
 import { createRouter } from "next-connect";
 import controller from "infra/controller.js";
-import usersModel from "models/users.js";
+import usersModel from "models/user.js";
 
 const router = createRouter();
 
