@@ -78,9 +78,9 @@ async function findUserByUsername(username) {
   return result.rows[0];
 }
 
-const usersModel = {
+const userModel = {
   createUser,
   findUserByUsername,
 };
 
-export default usersModel;
+export default userModel;
