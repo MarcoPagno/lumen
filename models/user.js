@@ -29,6 +29,26 @@ async function findUserByUsername(username) {
   return result.rows[0];
 }
 
+async function findUserByEmail(email) {
+  const result = await database.query({
+    text: `
+      SELECT * FROM users 
+      WHERE LOWER(email) = LOWER($1)
+      LIMIT 1;`,
+    values: [email],
+  });
+
+  if (result.rowCount === 0) {
+    throw new NotFoundError({
+      message: "User not found",
+      action: "Check for typos or verify the identifier",
+      status_code: 404,
+    });
+  }
+
+  return result.rows[0];
+}
+
 async function updateUserByUsername(username, userInputValues) {
   const currentUser = await findUserByUsername(username);
 
@@ -126,6 +146,7 @@ async function runInsertQuery(inputValues) {
 const userModel = {
   createNewUser,
   findUserByUsername,
+  findUserByEmail,
   updateUserByUsername,
 };
 
