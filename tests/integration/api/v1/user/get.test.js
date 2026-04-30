@@ -36,6 +36,11 @@ describe("GET /api/v1/user", () => {
         action: "Authenticate and try again",
         status_code: 401,
       });
+
+      //Set-Cookie assertions
+      expect(response.headers.get(`set-cookie`)).toBe(
+        `session_id=invalid; Max-Age=-1; Path=/; HttpOnly`,
+      );
     });
 
     test("fails when session does not exist", async () => {
@@ -57,6 +62,11 @@ describe("GET /api/v1/user", () => {
         action: "Authenticate and try again",
         status_code: 401,
       });
+
+      //Set-Cookie assertions
+      expect(response.headers.get(`set-cookie`)).toBe(
+        `session_id=invalid; Max-Age=-1; Path=/; HttpOnly`,
+      );
     });
 
     test("successfully when sends session and receives user", async () => {

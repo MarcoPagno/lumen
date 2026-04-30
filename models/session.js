@@ -46,6 +46,27 @@ async function renew(sessionId) {
   }
 }
 
+async function expireById(sessionId) {
+  const deleteSessionObject = await runUpdateQuery(sessionId);
+
+  return deleteSessionObject;
+
+  async function runUpdateQuery(sessionId) {
+    const result = await database.query({
+      text: `
+        UPDATE sessions
+        SET 
+          expires_at = expires_at - interval '1 year',
+          updated_at = NOW()
+        WHERE id = ($1)
+        RETURNING *`,
+      values: [sessionId],
+    });
+
+    return result.rows[0];
+  }
+}
+
 async function findValidSessionByToken(sessionToken) {
   const sessionFound = await runSelectQuery(sessionToken);
 
@@ -54,7 +75,7 @@ async function findValidSessionByToken(sessionToken) {
   async function runSelectQuery(token) {
     const result = await database.query({
       text: `
-        SELECT * FROM sessions 
+        SELECT * FROM sessions
         WHERE
           expires_at > NOW()
           AND token = ($1)
@@ -77,6 +98,7 @@ async function findValidSessionByToken(sessionToken) {
 const sessionModel = {
   create,
   renew,
+  expireById,
   findValidSessionByToken,
   EXPIRATION_IN_MILLISECONDS,
 };
