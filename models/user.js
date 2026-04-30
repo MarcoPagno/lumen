@@ -10,12 +10,53 @@ async function createNewUser(inputValues) {
   return await runInsertQuery(inputValues);
 }
 
+async function findUserById(userId) {
+  const result = await database.query({
+    text: `
+      SELECT * FROM users 
+      WHERE id = ($1)
+      LIMIT 1;`,
+    values: [userId],
+  });
+
+  if (result.rowCount === 0) {
+    throw new NotFoundError({
+      message: "User not found",
+      action: "Verify the provided user ID and try again",
+      status_code: 404,
+    });
+  }
+
+  return result.rows[0];
+}
+
 async function findUserByUsername(username) {
   const result = await database.query({
     text: `
       SELECT * FROM users 
-      WHERE LOWER(username) = LOWER($1);`,
+      WHERE LOWER(username) = LOWER($1)
+      LIMIT 1;`,
     values: [username],
+  });
+
+  if (result.rowCount === 0) {
+    throw new NotFoundError({
+      message: "User not found",
+      action: "Check for typos or verify the identifier",
+      status_code: 404,
+    });
+  }
+
+  return result.rows[0];
+}
+
+async function findUserByEmail(email) {
+  const result = await database.query({
+    text: `
+      SELECT * FROM users 
+      WHERE LOWER(email) = LOWER($1)
+      LIMIT 1;`,
+    values: [email],
   });
 
   if (result.rowCount === 0) {
@@ -125,7 +166,9 @@ async function runInsertQuery(inputValues) {
 
 const userModel = {
   createNewUser,
+  findUserById,
   findUserByUsername,
+  findUserByEmail,
   updateUserByUsername,
 };
 
