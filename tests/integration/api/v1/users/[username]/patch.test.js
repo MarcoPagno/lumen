@@ -135,6 +135,40 @@ describe("PATCH /api/v1/users/[username]", () => {
       });
     });
 
+    test("returns 403 when authenticated user attempts to update another user", async () => {
+      await orchestrator.createUser({
+        username: "userA",
+      });
+
+      const createdUser2 = await orchestrator.createUser({
+        username: "userB",
+      });
+
+      const activatedUser2 = await orchestrator.activateUser(createdUser2);
+      const sessionObject2 = await orchestrator.createSession(activatedUser2);
+
+      const response = await fetch("http://localhost:3000/api/v1/users/userA", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `session_id=${sessionObject2.token}`,
+        },
+        body: JSON.stringify({
+          username: "userC",
+        }),
+      });
+      expect(response.status).toBe(403);
+
+      const response2Body = await response.json();
+      expect(response2Body).toEqual({
+        name: "ForbiddenError",
+        message: "Insufficient permissions to update another user",
+        action:
+          "Ensure the user has the required feature to update other users",
+        status_code: 403,
+      });
+    });
+
     test("updates user with new valid `username`", async () => {
       const createdUser = await orchestrator.createUser();
       const activatedUser = await orchestrator.activateUser(createdUser);
@@ -266,6 +300,59 @@ describe("PATCH /api/v1/users/[username]", () => {
       );
 
       expect(correctPasswordMatch).toBe(true);
+    });
+  });
+
+  describe("Privileged user", () => {
+    test("updates another user when authenticated user has 'update:user:others' permission", async () => {
+      const defaultUser = await orchestrator.createUser({
+        username: "defaultUser",
+      });
+
+      const privilegedUser = await orchestrator.createUser({
+        username: "privilegedUser",
+      });
+      const activatedPrivilegedUser =
+        await orchestrator.activateUser(privilegedUser);
+
+      await orchestrator.addFeaturesToUser(privilegedUser, [
+        "update:user:others",
+      ]);
+
+      const privilegedUserSession = await orchestrator.createSession(
+        activatedPrivilegedUser,
+      );
+
+      const response = await fetch(
+        "http://localhost:3000/api/v1/users/defaultUser",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `session_id=${privilegedUserSession.token}`,
+          },
+          body: JSON.stringify({
+            username: "renamedDefaultUser",
+          }),
+        },
+      );
+      expect(response.status).toBe(200);
+
+      const responseBody = await response.json();
+
+      expect(responseBody).toEqual({
+        id: defaultUser.id,
+        username: "renamedDefaultUser",
+        email: defaultUser.email,
+        features: ["read:activation_token"],
+        password: defaultUser.password,
+        created_at: responseBody.created_at,
+        updated_at: responseBody.updated_at,
+      });
+      expect(uuidVersion(responseBody.id)).toBe(4);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
+      expect(responseBody.updated_at > responseBody.created_at).toBe(true);
     });
   });
 });

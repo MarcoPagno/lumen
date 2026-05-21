@@ -68,6 +68,11 @@ async function activateUser(inactiveUser) {
   return await activationModel.activateUserbyUserId(inactiveUser.id);
 }
 
+async function addFeaturesToUser(userObject, features) {
+  const updatedUser = await userModel.addFeatures(userObject.id, features);
+  return updatedUser;
+}
+
 async function deleteAllEmails() {
   await fetch(`${emailHttpUrl}/messages`, {
     method: "DELETE",
@@ -100,6 +105,7 @@ const orchestrator = {
   runPendingMigrations,
   createUser,
   activateUser,
+  addFeaturesToUser,
   createSession,
   deleteAllEmails,
   getLastEmail,
