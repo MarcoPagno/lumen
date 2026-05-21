@@ -13,6 +13,7 @@ beforeAll(async () => {
 describe("Use case: Registration Flow (successful path)", () => {
   let createUserResponseBody;
   let activationTokenId;
+  let createSessionsResponseBody;
 
   test("creates a new user account with valid data", async () => {
     const createUserResponse = await fetch(
@@ -83,7 +84,26 @@ describe("Use case: Registration Flow (successful path)", () => {
     expect(activatedUser.features).toEqual(["create:session"]);
   });
 
-  test("creates session after successful login", async () => {});
+  test("creates session after successful login", async () => {
+    const createSessionsResponse = await fetch(
+      "http://localhost:3000/api/v1/sessions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: "registration.flow@email.com",
+          password: "password123",
+        }),
+      },
+    );
+    expect(createSessionsResponse.status).toBe(201);
+
+    createSessionsResponseBody = await createSessionsResponse.json();
+
+    expect(createSessionsResponseBody.user_id).toBe(createUserResponseBody.id);
+  });
 
   test("returns user data for authenticated user", async () => {});
 });

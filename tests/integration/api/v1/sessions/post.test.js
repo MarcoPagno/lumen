@@ -6,6 +6,7 @@ beforeAll(async () => {
   await orchestrator.waitForAllServices();
   await orchestrator.clearDatabase();
   await orchestrator.runPendingMigrations();
+  await orchestrator.deleteAllEmails();
 });
 
 describe("POST /api/v1/sessions", () => {
@@ -91,6 +92,10 @@ describe("POST /api/v1/sessions", () => {
         email: "allCorrect@gmail.com",
         password: "allCorrect123",
       });
+
+      const activatedAccount = await orchestrator.activateUser(newSessionUser);
+
+      expect(activatedAccount.features).toEqual(["create:session"]);
 
       const response = await fetch("http://localhost:3000/api/v1/sessions", {
         method: "POST",

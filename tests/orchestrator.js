@@ -4,6 +4,7 @@ import userModel from "models/user.js";
 import migrator from "models/migrator.js";
 import sessionModel from "models/session.js";
 import database from "infra/database.js";
+import activationModel from "models/activation.js";
 
 const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
@@ -59,8 +60,12 @@ async function createUser(userObject) {
   });
 }
 
-async function createSession(userId) {
-  return await sessionModel.create(userId);
+async function createSession(user) {
+  return await sessionModel.create(user.id);
+}
+
+async function activateUser(inactiveUser) {
+  return await activationModel.activateUserbyUserId(inactiveUser.id);
 }
 
 async function deleteAllEmails() {
@@ -94,6 +99,7 @@ const orchestrator = {
   clearDatabase,
   runPendingMigrations,
   createUser,
+  activateUser,
   createSession,
   deleteAllEmails,
   getLastEmail,
