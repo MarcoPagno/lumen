@@ -1,10 +1,11 @@
 import email from "infra/email.js";
 import database from "infra/database.js";
 import webserver from "infra/webserver.js";
-import { NotFoundError } from "infra/errors.js";
+import { ForbiddenError, NotFoundError } from "infra/errors.js";
 import userModel from "models/user.js";
+import authorizationModel from "models/authorization.js";
 
-const EXPIRATION_IN_MILLISECONDS = 60 * 15 * 1000; //15 minutes
+const EXPIRATION_IN_MILLISECONDS = 1000 * 60 * 15; //15 minutes
 
 async function create(user) {
   const expiresAt = new Date(Date.now() + EXPIRATION_IN_MILLISECONDS);
@@ -38,8 +39,8 @@ async function findValidTokenById(tokenId) {
 
   if (user.rowCount === 0) {
     throw new NotFoundError({
-      message: "Id not found",
-      action: "Verify the provided user ID and try again",
+      message: "Activation token not found or expired",
+      action: "Register again to receive a new activation token",
       status_code: 404,
     });
   }
@@ -85,6 +86,15 @@ async function markTokenAsUsed(token) {
 }
 
 async function activateUserbyUserId(userId) {
+  const userToActivate = await userModel.findUserById(userId);
+
+  if (!authorizationModel.can(userToActivate, "read:activation_token")) {
+    throw new ForbiddenError({
+      message: "Activation tokens are no longer valid for this user",
+      action: "Contact support if you need assistance",
+    });
+  }
+
   const activatedUser = await userModel.setFeatures(userId, [
     "create:session",
     "read:session",

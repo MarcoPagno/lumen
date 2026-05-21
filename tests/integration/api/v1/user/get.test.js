@@ -26,7 +26,7 @@ describe("GET /api/v1/user", () => {
     });
   });
 
-  describe("Default user", () => {
+  describe("Authenticated user", () => {
     test("fails when session is already expired", async () => {
       jest.useFakeTimers({
         now: new Date(Date.now() - sessionModel.EXPIRATION_IN_MILLISECONDS),
