@@ -95,7 +95,10 @@ describe("POST /api/v1/sessions", () => {
 
       const activatedAccount = await orchestrator.activateUser(newSessionUser);
 
-      expect(activatedAccount.features).toEqual(["create:session"]);
+      expect(activatedAccount.features).toEqual([
+        "create:session",
+        "read:session",
+      ]);
 
       const response = await fetch("http://localhost:3000/api/v1/sessions", {
         method: "POST",

@@ -81,7 +81,7 @@ describe("Use case: Registration Flow (successful path)", () => {
 
     const activatedUser =
       await userModel.findUserByUsername("RegistrationFlow");
-    expect(activatedUser.features).toEqual(["create:session"]);
+    expect(activatedUser.features).toEqual(["create:session", "read:session"]);
   });
 
   test("creates session after successful login", async () => {
@@ -105,5 +105,15 @@ describe("Use case: Registration Flow (successful path)", () => {
     expect(createSessionsResponseBody.user_id).toBe(createUserResponseBody.id);
   });
 
-  test("returns user data for authenticated user", async () => {});
+  test("returns user data for authenticated user", async () => {
+    const userResponse = await fetch("http://localhost:3000/api/v1/user/", {
+      headers: {
+        cookie: `session_id=${createSessionsResponseBody.token}`,
+      },
+    });
+    expect(userResponse.status).toBe(200);
+
+    const userResponseBody = await userResponse.json();
+    expect(userResponseBody.id).toBe(createUserResponseBody.id);
+  });
 });
