@@ -3,6 +3,9 @@ import orchestrator from "tests/orchestrator";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
+  await orchestrator.clearDatabase();
+  await orchestrator.runPendingMigrations();
+  await orchestrator.deleteAllEmails();
 });
 
 describe("infra/email.js", () => {
