@@ -1,9 +1,9 @@
 import { faker } from "@faker-js/faker";
 import retry from "async-retry";
-import database from "infra/database.js";
-import migrator from "models/migrator.js";
-import sessionModel from "models/session";
 import userModel from "models/user.js";
+import migrator from "models/migrator.js";
+import sessionModel from "models/session.js";
+import database from "infra/database.js";
 
 const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
@@ -84,6 +84,11 @@ async function getLastEmail() {
   return lastEmailItem;
 }
 
+function extractUUID(text) {
+  const match = text.match(/[0-9a-fA-F-]{36}/);
+  return match ? match[0] : null;
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
@@ -92,6 +97,7 @@ const orchestrator = {
   createSession,
   deleteAllEmails,
   getLastEmail,
+  extractUUID,
 };
 
 export default orchestrator;
