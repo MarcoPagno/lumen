@@ -98,6 +98,7 @@ describe("POST /api/v1/sessions", () => {
       expect(activatedAccount.features).toEqual([
         "create:session",
         "read:session",
+        "update:user",
       ]);
 
       const response = await fetch("http://localhost:3000/api/v1/sessions", {

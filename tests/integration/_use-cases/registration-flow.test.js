@@ -81,7 +81,11 @@ describe("Use case: Registration Flow (successful path)", () => {
 
     const activatedUser =
       await userModel.findUserByUsername("RegistrationFlow");
-    expect(activatedUser.features).toEqual(["create:session", "read:session"]);
+    expect(activatedUser.features).toEqual([
+      "create:session",
+      "read:session",
+      "update:user",
+    ]);
   });
 
   test("creates session after successful login", async () => {
