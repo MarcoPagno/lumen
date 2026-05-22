@@ -3,20 +3,67 @@ import orchestrator from "tests/orchestrator.js";
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
   await orchestrator.clearDatabase();
+  await orchestrator.runPendingMigrations();
 });
 
 describe("GET /api/v1/migrations", () => {
   describe("Anonymous user", () => {
     test("retrieving pending migrations", async () => {
+      const response = await fetch("http://localhost:3000/api/v1/migrations");
+      expect(response.status).toBe(403);
+      const responseBody = await response.json();
+      expect(responseBody).toEqual({
+        name: "ForbiddenError",
+        message: "Insufficient permissions to perform this action",
+        action: 'Ensure the user has the required feature: "read:migration"',
+        status_code: 403,
+      });
+    });
+  });
+
+  describe("Authenticated user", () => {
+    test("retrieving pending migrations", async () => {
+      const defaultUser = await orchestrator.createUser();
+      const activatedUser = await orchestrator.activateUser(defaultUser);
+      const sessionObject = await orchestrator.createSession(activatedUser);
+
       const response = await fetch("http://localhost:3000/api/v1/migrations", {
-        method: "GET",
+        headers: {
+          Cookie: `session_id=${sessionObject.token}`,
+        },
+      });
+      expect(response.status).toBe(403);
+
+      const responseBody = await response.json();
+      expect(responseBody).toEqual({
+        name: "ForbiddenError",
+        message: "Insufficient permissions to perform this action",
+        action: 'Ensure the user has the required feature: "read:migration"',
+        status_code: 403,
+      });
+    });
+  });
+
+  describe("Privileged user", () => {
+    test("retrieving pending migrations with `read:migration` feature", async () => {
+      const privilegedUser = await orchestrator.createUser();
+
+      const activatedPrivilegedUser =
+        await orchestrator.activateUser(privilegedUser);
+      await orchestrator.addFeaturesToUser(privilegedUser, ["read:migration"]);
+      const privilegedUserSession = await orchestrator.createSession(
+        activatedPrivilegedUser,
+      );
+
+      const response = await fetch("http://localhost:3000/api/v1/migrations", {
+        headers: {
+          Cookie: `session_id=${privilegedUserSession.token}`,
+        },
       });
       expect(response.status).toBe(200);
 
       const responseBody = await response.json();
-
       expect(Array.isArray(responseBody)).toBe(true);
-      expect(responseBody.length).toBeGreaterThan(0);
     });
   });
 });

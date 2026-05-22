@@ -6,6 +6,7 @@ beforeAll(async () => {
   await orchestrator.waitForAllServices();
   await orchestrator.clearDatabase();
   await orchestrator.runPendingMigrations();
+  await orchestrator.deleteAllEmails();
 });
 
 describe("POST /api/v1/sessions", () => {
@@ -21,7 +22,7 @@ describe("POST /api/v1/sessions", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "wrong.email@gmail.com",
+          email: "wrong.email@email.com",
           password: "correctPassword",
         }),
       });
@@ -39,7 +40,7 @@ describe("POST /api/v1/sessions", () => {
 
     test("fails with correct `email` but incorrect `password`", async () => {
       await orchestrator.createUser({
-        email: "correctEmail@gmail.com",
+        email: "correctEmail@email.com",
       });
 
       const response = await fetch("http://localhost:3000/api/v1/sessions", {
@@ -48,7 +49,7 @@ describe("POST /api/v1/sessions", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "correctEmail@gmail.com",
+          email: "correctEmail@email.com",
           password: "incorrectPassword",
         }),
       });
@@ -71,7 +72,7 @@ describe("POST /api/v1/sessions", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "incorrectEmail@gmail.com",
+          email: "incorrectEmail@email.com",
           password: "incorrectPassword",
         }),
       });
@@ -88,9 +89,17 @@ describe("POST /api/v1/sessions", () => {
 
     test("creates session with valid credentials", async () => {
       const newSessionUser = await orchestrator.createUser({
-        email: "allCorrect@gmail.com",
+        email: "allCorrect@email.com",
         password: "allCorrect123",
       });
+
+      const activatedAccount = await orchestrator.activateUser(newSessionUser);
+
+      expect(activatedAccount.features).toEqual([
+        "create:session",
+        "read:session",
+        "update:user",
+      ]);
 
       const response = await fetch("http://localhost:3000/api/v1/sessions", {
         method: "POST",
@@ -98,7 +107,7 @@ describe("POST /api/v1/sessions", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "AllCorrect@gmail.com",
+          email: "AllCorrect@email.com",
           password: "allCorrect123",
         }),
       });

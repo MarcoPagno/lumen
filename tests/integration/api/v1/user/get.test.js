@@ -9,14 +9,31 @@ beforeAll(async () => {
 });
 
 describe("GET /api/v1/user", () => {
-  describe("Default user", () => {
+  describe("Anonymous user", () => {
+    test("Retrieving the endpoint", async () => {
+      const response = await fetch("http://localhost:3000/api/v1/user");
+
+      expect(response.status).toBe(403);
+
+      const responseBody = await response.json();
+
+      expect(responseBody).toEqual({
+        name: "ForbiddenError",
+        message: "Insufficient permissions to perform this action",
+        action: 'Ensure the user has the required feature: "read:session"',
+        status_code: 403,
+      });
+    });
+  });
+
+  describe("Authenticated user", () => {
     test("fails when session is already expired", async () => {
       jest.useFakeTimers({
         now: new Date(Date.now() - sessionModel.EXPIRATION_IN_MILLISECONDS),
       });
 
-      const createdUser = await orchestrator.createUser({});
-      const sessionObject = await orchestrator.createSession(createdUser.id);
+      const createdUser = await orchestrator.createUser();
+      const sessionObject = await orchestrator.createSession(createdUser);
 
       jest.useRealTimers();
 
@@ -70,8 +87,11 @@ describe("GET /api/v1/user", () => {
     });
 
     test("successfully when sends session and receives user", async () => {
-      const createdUser = await orchestrator.createUser({});
-      const session = await orchestrator.createSession(createdUser.id);
+      const createdUser = await orchestrator.createUser();
+
+      const activatedUser = await orchestrator.activateUser(createdUser);
+
+      const session = await orchestrator.createSession(createdUser);
 
       const response = await fetch("http://localhost:3000/api/v1/user", {
         method: "GET",
@@ -87,9 +107,9 @@ describe("GET /api/v1/user", () => {
         id: createdUser.id,
         username: createdUser.username,
         email: createdUser.email,
-        password: createdUser.password,
+        features: ["create:session", "read:session", "update:user"],
         created_at: createdUser.created_at.toISOString(),
-        updated_at: createdUser.updated_at.toISOString(),
+        updated_at: activatedUser.updated_at.toISOString(),
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
@@ -120,9 +140,11 @@ describe("GET /api/v1/user", () => {
         ),
       });
 
-      const createdUser = await orchestrator.createUser({});
+      const createdUser = await orchestrator.createUser();
 
-      const sessionObject = await orchestrator.createSession(createdUser.id);
+      await orchestrator.activateUser(createdUser);
+
+      const sessionObject = await orchestrator.createSession(createdUser);
 
       jest.useRealTimers();
 

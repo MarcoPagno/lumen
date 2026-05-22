@@ -20,7 +20,7 @@ describe("POST /api/v1/users", () => {
         },
         body: JSON.stringify({
           username: "test",
-          email: "test@gmail.com",
+          email: "test@email.com",
           password: "password123",
         }),
       });
@@ -30,8 +30,7 @@ describe("POST /api/v1/users", () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: "test",
-        email: "test@gmail.com",
-        password: responseBody.password,
+        features: ["read:activation_token"],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
@@ -64,7 +63,7 @@ describe("POST /api/v1/users", () => {
         },
         body: JSON.stringify({
           username: "duplicated",
-          email: "duplicatedUsername@gmail.com",
+          email: "duplicatedUsername@email.com",
           password: "password123",
         }),
       });
@@ -78,7 +77,7 @@ describe("POST /api/v1/users", () => {
         },
         body: JSON.stringify({
           username: "Duplicated",
-          email: "duplicatedUsername2@gmail.com",
+          email: "duplicatedUsername2@email.com",
           password: "password123",
         }),
       });
@@ -102,7 +101,7 @@ describe("POST /api/v1/users", () => {
         },
         body: JSON.stringify({
           username: "duplicatedEmail1",
-          email: "duplicated@gmail.com",
+          email: "duplicated@email.com",
           password: "password123",
         }),
       });
@@ -116,7 +115,7 @@ describe("POST /api/v1/users", () => {
         },
         body: JSON.stringify({
           username: "duplicatedEmail2",
-          email: "Duplicated@gmail.com",
+          email: "Duplicated@email.com",
           password: "password123",
         }),
       });
@@ -128,6 +127,38 @@ describe("POST /api/v1/users", () => {
         message: "Email already in use",
         action: "Use a different email address",
         status_code: 400,
+      });
+    });
+  });
+
+  describe("Authenticated user", () => {
+    test("receives 403 while logged", async () => {
+      const user1 = await orchestrator.createUser();
+      await orchestrator.activateUser(user1);
+      const user1SessionObject = await orchestrator.createSession(user1);
+
+      const user2Response = await fetch(`http://localhost:3000/api/v1/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `session_id=${user1SessionObject.token}`,
+        },
+        body: JSON.stringify({
+          username: "userLogged",
+          email: "userLogged@email.com",
+          password: "password123",
+        }),
+      });
+
+      expect(user2Response.status).toBe(403);
+
+      const user2ResponseBody = await user2Response.json();
+
+      expect(user2ResponseBody).toEqual({
+        name: "ForbiddenError",
+        message: "Insufficient permissions to perform this action",
+        action: 'Ensure the user has the required feature: "create:user"',
+        status_code: 403,
       });
     });
   });

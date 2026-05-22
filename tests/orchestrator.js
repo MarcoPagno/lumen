@@ -1,9 +1,10 @@
 import { faker } from "@faker-js/faker";
 import retry from "async-retry";
-import database from "infra/database.js";
-import migrator from "models/migrator.js";
-import sessionModel from "models/session";
 import userModel from "models/user.js";
+import migrator from "models/migrator.js";
+import sessionModel from "models/session.js";
+import database from "infra/database.js";
+import activationModel from "models/activation.js";
 
 const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
@@ -53,14 +54,23 @@ async function runPendingMigrations() {
 async function createUser(userObject) {
   return await userModel.createNewUser({
     username:
-      userObject.username || faker.internet.username().replace(/[_.-]/g, ""),
-    email: userObject.email || faker.internet.email(),
-    password: userObject.password || "validPassword",
+      userObject?.username || faker.internet.username().replace(/[_.-]/g, ""),
+    email: userObject?.email || faker.internet.email(),
+    password: userObject?.password || "validPassword",
   });
 }
 
-async function createSession(userId) {
-  return await sessionModel.create(userId);
+async function createSession(user) {
+  return await sessionModel.create(user.id);
+}
+
+async function activateUser(inactiveUser) {
+  return await activationModel.activateUserbyUserId(inactiveUser.id);
+}
+
+async function addFeaturesToUser(userObject, features) {
+  const updatedUser = await userModel.addFeatures(userObject.id, features);
+  return updatedUser;
 }
 
 async function deleteAllEmails() {
@@ -74,6 +84,8 @@ async function getLastEmail() {
   const emailListBody = await emailListResponse.json();
   const lastEmailItem = emailListBody.pop();
 
+  if (!lastEmailItem) return null;
+
   const emailTextResponse = await fetch(
     `${emailHttpUrl}/messages/${lastEmailItem.id}.plain`,
   );
@@ -82,14 +94,22 @@ async function getLastEmail() {
   return lastEmailItem;
 }
 
+function extractUUID(text) {
+  const match = text.match(/[0-9a-fA-F-]{36}/);
+  return match ? match[0] : null;
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
   runPendingMigrations,
   createUser,
+  activateUser,
+  addFeaturesToUser,
   createSession,
   deleteAllEmails,
   getLastEmail,
+  extractUUID,
 };
 
 export default orchestrator;

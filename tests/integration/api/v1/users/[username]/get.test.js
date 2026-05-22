@@ -10,7 +10,7 @@ beforeAll(async () => {
 describe("GET /api/v1/users/[username]", () => {
   describe("Anonymous user", () => {
     test("returns user when username matches exactly", async () => {
-      const createdUser = await orchestrator.createUser({
+      await orchestrator.createUser({
         username: "userTest",
       });
 
@@ -27,15 +27,14 @@ describe("GET /api/v1/users/[username]", () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: "userTest",
-        email: createdUser.email,
-        password: responseBody.password,
+        features: ["read:activation_token"],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
     });
 
     test("returns user when username matches ignoring case", async () => {
-      const createdUser = await orchestrator.createUser({
+      await orchestrator.createUser({
         username: "userTestDifferent",
       });
 
@@ -52,8 +51,7 @@ describe("GET /api/v1/users/[username]", () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: "userTestDifferent",
-        email: createdUser.email,
-        password: responseBody.password,
+        features: ["read:activation_token"],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
