@@ -102,11 +102,11 @@ describe("PATCH /api/v1/users/[username]", () => {
 
     test("fails when updated email is already in use", async () => {
       await orchestrator.createUser({
-        email: "email1@gmail.com",
+        email: "email1@email.com",
       });
 
       const createdUser2 = await orchestrator.createUser({
-        email: "email2@gmail.com",
+        email: "email2@email.com",
       });
       const activatedUser2 = await orchestrator.activateUser(createdUser2);
       const sessionObject2 = await orchestrator.createSession(activatedUser2);
@@ -120,7 +120,7 @@ describe("PATCH /api/v1/users/[username]", () => {
             Cookie: `session_id=${sessionObject2.token}`,
           },
           body: JSON.stringify({
-            email: "email1@gmail.com",
+            email: "email1@email.com",
           }),
         },
       );
@@ -206,7 +206,7 @@ describe("PATCH /api/v1/users/[username]", () => {
 
     test("updates user with new valid `email`", async () => {
       const createdUser = await orchestrator.createUser({
-        email: "newEmail1@gmail.com",
+        email: "newEmail1@email.com",
       });
       const activatedUser = await orchestrator.activateUser(createdUser);
       const sessionObject = await orchestrator.createSession(activatedUser);
@@ -220,7 +220,7 @@ describe("PATCH /api/v1/users/[username]", () => {
             Cookie: `session_id=${sessionObject.token}`,
           },
           body: JSON.stringify({
-            email: "newEmail2@gmail.com",
+            email: "newEmail2@email.com",
           }),
         },
       );
