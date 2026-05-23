@@ -1,5 +1,6 @@
 import { version as uuidVersion } from "uuid";
 import orchestrator from "tests/orchestrator.js";
+import webserver from "infra/webserver.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -9,13 +10,13 @@ beforeAll(async () => {
 
 describe("GET /api/v1/users/[username]", () => {
   describe("Anonymous user", () => {
-    test("returns user when username matches exactly", async () => {
+    test("returns user when `username` matches exactly", async () => {
       await orchestrator.createUser({
         username: "userTest",
       });
 
       const response = await fetch(
-        "http://localhost:3000/api/v1/users/userTest",
+        `${webserver.origin}/api/v1/users/userTest`,
         {
           method: "GET",
         },
@@ -33,13 +34,13 @@ describe("GET /api/v1/users/[username]", () => {
       });
     });
 
-    test("returns user when username matches ignoring case", async () => {
+    test("returns user when `username` matches ignoring case", async () => {
       await orchestrator.createUser({
         username: "userTestDifferent",
       });
 
       const response = await fetch(
-        "http://localhost:3000/api/v1/users/userTestDifferent",
+        `${webserver.origin}/api/v1/users/userTestDifferent`,
         {
           method: "GET",
         },
@@ -60,9 +61,9 @@ describe("GET /api/v1/users/[username]", () => {
       expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
     });
 
-    test("returns 404 when username does not exist", async () => {
+    test("returns 404 when `username` does not exist", async () => {
       const response = await fetch(
-        "http://localhost:3000/api/v1/users/testNotFoundUser",
+        `${webserver.origin}/api/v1/users/testNotFoundUser`,
         {
           method: "GET",
         },

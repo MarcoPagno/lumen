@@ -1,5 +1,6 @@
 import orchestrator from "tests/orchestrator.js";
 import sessionModel from "models/session.js";
+import webserver from "infra/webserver.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -13,7 +14,7 @@ describe("DELETE /api/v1/sessions", () => {
       const nonexistentToken =
         "b85c1ca401abd3dff6ae4c5d426163d434ffbd6197af97d1d0a804afcae9402b755048f63d41f1e3961b744fdea560dd";
 
-      const response = await fetch("http://localhost:3000/api/v1/sessions", {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: "DELETE",
         headers: {
           Cookie: `session_id=` + nonexistentToken,
@@ -41,7 +42,7 @@ describe("DELETE /api/v1/sessions", () => {
 
       jest.useRealTimers();
 
-      const response = await fetch("http://localhost:3000/api/v1/sessions", {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: "DELETE",
         headers: {
           Cookie: `session_id=` + newSession.token,
@@ -64,7 +65,7 @@ describe("DELETE /api/v1/sessions", () => {
       const sessionObject = await orchestrator.createSession(newUser);
 
       const responseDeleted = await fetch(
-        "http://localhost:3000/api/v1/sessions",
+        `${webserver.origin}/api/v1/sessions`,
         {
           method: "DELETE",
           headers: {
@@ -96,7 +97,7 @@ describe("DELETE /api/v1/sessions", () => {
         `session_id=invalid; Max-Age=-1; Path=/; HttpOnly`,
       );
 
-      const response = await fetch("http://localhost:3000/api/v1/user", {
+      const response = await fetch(`${webserver.origin}/api/v1/user`, {
         method: "GET",
         headers: {
           Cookie: `session_id=` + sessionObject.token,

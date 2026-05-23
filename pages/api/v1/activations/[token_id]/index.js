@@ -3,12 +3,10 @@ import controller from "infra/controller.js";
 import activationModel from "models/activation.js";
 import authorizationModel from "models/authorization";
 
-const router = createRouter();
-
-router.use(controller.injectAnonymousOrUser);
-router.patch(controller.canRequest("read:activation_token"), patchHandler);
-
-export default router.handler(controller.errorHandlers);
+export default createRouter()
+  .use(controller.injectAnonymousOrUser)
+  .patch(controller.canRequest("read:activation_token"), patchHandler)
+  .handler(controller.errorHandlers);
 
 async function patchHandler(request, response) {
   const userTryingToPatch = request.context.user;

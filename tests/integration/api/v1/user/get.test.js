@@ -1,6 +1,7 @@
 import { version as uuidVersion } from "uuid";
 import orchestrator from "tests/orchestrator.js";
-import sessionModel from "models/session";
+import sessionModel from "models/session.js";
+import webserver from "infra/webserver.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -11,7 +12,7 @@ beforeAll(async () => {
 describe("GET /api/v1/user", () => {
   describe("Anonymous user", () => {
     test("Retrieving the endpoint", async () => {
-      const response = await fetch("http://localhost:3000/api/v1/user");
+      const response = await fetch(`${webserver.origin}/api/v1/user`);
 
       expect(response.status).toBe(403);
 
@@ -37,7 +38,7 @@ describe("GET /api/v1/user", () => {
 
       jest.useRealTimers();
 
-      const response = await fetch("http://localhost:3000/api/v1/user", {
+      const response = await fetch(`${webserver.origin}/api/v1/user`, {
         method: "GET",
         headers: {
           Cookie: `session_id=` + sessionObject.token,
@@ -63,7 +64,7 @@ describe("GET /api/v1/user", () => {
     test("fails when session does not exist", async () => {
       const nonexistentToken =
         "522d532f09c413668a4f0bf0399137b1eb23bb65c5edadd148bb39993a4f7e0e28ccc9a15c61e95515c3477402e5dd83";
-      const response = await fetch("http://localhost:3000/api/v1/user", {
+      const response = await fetch(`${webserver.origin}/api/v1/user`, {
         method: "GET",
         headers: {
           Cookie: `session_id=` + nonexistentToken,
@@ -93,7 +94,7 @@ describe("GET /api/v1/user", () => {
 
       const session = await orchestrator.createSession(createdUser);
 
-      const response = await fetch("http://localhost:3000/api/v1/user", {
+      const response = await fetch(`${webserver.origin}/api/v1/user`, {
         method: "GET",
         headers: {
           Cookie: `session_id=` + session.token,
@@ -125,7 +126,7 @@ describe("GET /api/v1/user", () => {
 
       //set-cookies assertions
       expect(response.headers.get(`set-cookie`)).toBe(
-        `session_id=${renewedSessionObject.token}; Max-Age=${sessionModel.EXPIRATION_IN_MILLISECONDS / 1000}; Path=/; HttpOnly`,
+        `session_id=${renewedSessionObject.token}; Max-Age=${sessionModel.EXPIRATION_IN_MILLISECONDS / 1000}; Path=/; HttpOnly; SameSite=Lax`,
       );
 
       expect(response.headers.get(`Cache-Control`)).toBe(
@@ -151,7 +152,7 @@ describe("GET /api/v1/user", () => {
       //almost ending
       expect(sessionObject.expires_at < new Date(Date.now() + 600)).toBe(true);
 
-      const response = await fetch("http://localhost:3000/api/v1/user", {
+      const response = await fetch(`${webserver.origin}/api/v1/user`, {
         method: "GET",
         headers: {
           Cookie: `session_id=` + sessionObject.token,
@@ -173,7 +174,7 @@ describe("GET /api/v1/user", () => {
 
       //set-cookies assertions
       expect(response.headers.get(`set-cookie`)).toBe(
-        `session_id=${renewedSessionObject.token}; Max-Age=${sessionModel.EXPIRATION_IN_MILLISECONDS / 1000}; Path=/; HttpOnly`,
+        `session_id=${renewedSessionObject.token}; Max-Age=${sessionModel.EXPIRATION_IN_MILLISECONDS / 1000}; Path=/; HttpOnly; SameSite=Lax`,
       );
 
       expect(response.headers.get(`Cache-Control`)).toBe(
