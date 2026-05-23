@@ -50,7 +50,7 @@ async function findValidTokenById(tokenId) {
 
 async function sendEmailToUser(user, activationToken) {
   await email.send({
-    from: "Lumen <contact@lumen.com.br>",
+    from: "Lumen <contact@marcopagno.com.br>",
     to: user.email,
     subject: "Activate your registration on Lumen!",
     text: `${user.username}, click on the link to activate your email:
