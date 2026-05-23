@@ -99,7 +99,7 @@ describe("POST /api/v1/sessions", () => {
       expect(activatedAccount.features).toEqual([
         "create:session",
         "read:session",
-        "update:user",
+        "update:user:self",
       ]);
 
       const response = await fetch(`${webserver.origin}/api/v1/sessions`, {

@@ -1,11 +1,11 @@
-import { InternalServerError } from "infra/errors";
+import { ForbiddenError, InternalServerError } from "infra/errors";
 
 const availableFeatures = [
   //USER
   "create:user",
   "read:user",
   "read:user:self",
-  "update:user",
+  "update:user:self",
   "update:user:others",
 
   //SESSION
@@ -24,25 +24,15 @@ const availableFeatures = [
   "read:status:all",
 ];
 
-function can(user, feature, resource) {
+function can(user, feature) {
   validateUser(user);
   validateFeature(feature);
 
-  let authorizhed = false;
-
   if (user.features.includes(feature)) {
-    authorizhed = true;
+    return true;
   }
 
-  if (feature == "update:user" && resource) {
-    authorizhed = false;
-
-    if (user.id === resource.id || can(user, "update:user:others")) {
-      authorizhed = true;
-    }
-  }
-
-  return authorizhed;
+  return false;
 }
 
 function filterOutput(user, feature, resource) {
@@ -70,6 +60,10 @@ function filterOutput(user, feature, resource) {
         updated_at: resource.updated_at,
       };
     }
+    throw new ForbiddenError({
+      message: "You are not allowed to read another user's data",
+      action: "Make sure you are accessing your own user data",
+    });
   }
 
   if (feature === "read:session") {
@@ -83,6 +77,10 @@ function filterOutput(user, feature, resource) {
         expires_at: resource.expires_at,
       };
     }
+    throw new ForbiddenError({
+      message: "You are not allowed to read another user's session",
+      action: "Make sure you are accessing your own session",
+    });
   }
 
   if (feature === "read:activation_token") {

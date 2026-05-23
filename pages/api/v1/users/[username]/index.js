@@ -7,7 +7,7 @@ import { ForbiddenError } from "infra/errors";
 export default createRouter()
   .use(controller.injectAnonymousOrUser)
   .get(getHandler)
-  .patch(controller.canRequest("update:user"), patchHandler)
+  .patch(controller.canRequest("update:user:self"), patchHandler)
   .handler(controller.errorHandlers);
 
 async function getHandler(request, response) {
@@ -26,11 +26,19 @@ async function getHandler(request, response) {
 async function patchHandler(request, response) {
   const username = request.query.username;
   const userInputValues = request.body;
-
   const userTryingToPatch = request.context.user;
   const targetUser = await userModel.findUserByUsername(username);
 
-  if (!authorizationModel.can(userTryingToPatch, "update:user", targetUser)) {
+  const canUpdateSelf =
+    authorizationModel.can(userTryingToPatch, "update:user:self") &&
+    userTryingToPatch.id === targetUser.id;
+
+  const canUpdateOthers = authorizationModel.can(
+    userTryingToPatch,
+    "update:user:others",
+  );
+
+  if (!canUpdateSelf && !canUpdateOthers) {
     throw new ForbiddenError({
       message: "Insufficient permissions to update another user",
       action: "Ensure the user has the required feature to update other users",
@@ -41,12 +49,10 @@ async function patchHandler(request, response) {
     username,
     userInputValues,
   );
-
   const secureOutputValues = authorizationModel.filterOutput(
     userTryingToPatch,
     "read:user",
     updatedUser,
   );
-
   response.status(200).json(secureOutputValues);
 }

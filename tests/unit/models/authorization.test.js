@@ -1,4 +1,4 @@
-import { InternalServerError } from "infra/errors";
+import { ForbiddenError, InternalServerError } from "infra/errors.js";
 import authorizationModel from "models/authorization.js";
 
 describe("models/authorization.js", () => {
@@ -132,6 +132,103 @@ describe("models/authorization.js", () => {
         created_at: "2026-01-01T00:00:00.000Z",
         updated_at: "2026-01-01T00:00:00.000Z",
       });
+    });
+
+    test("returns filtered output for `read:user:self` when user is the resource owner", () => {
+      const createdUser = {
+        id: 1,
+        features: ["read:user:self"],
+      };
+      const resource = {
+        id: 1,
+        username: "resource",
+        email: "resource@resource.com",
+        features: ["read:user:self"],
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+        password: "hashed",
+      };
+      const result = authorizationModel.filterOutput(
+        createdUser,
+        "read:user:self",
+        resource,
+      );
+      expect(result).toEqual({
+        id: 1,
+        username: "resource",
+        email: "resource@resource.com",
+        features: ["read:user:self"],
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+      });
+    });
+
+    test("throws ForbiddenError for `read:user:self` when user is not the resource owner", () => {
+      const createdUser = {
+        id: 2,
+        features: ["read:user:self"],
+      };
+      const resource = {
+        id: 1,
+        username: "resource",
+        email: "resource@resource.com",
+        features: ["read:user:self"],
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+      };
+      expect(() =>
+        authorizationModel.filterOutput(
+          createdUser,
+          "read:user:self",
+          resource,
+        ),
+      ).toThrow(ForbiddenError);
+    });
+
+    test("returns filtered output for `read:session` when user owns the session", () => {
+      const createdUser = {
+        id: 1,
+        features: ["read:session"],
+      };
+      const resource = {
+        id: "session-id",
+        token: "token-abc",
+        user_id: 1,
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+        expires_at: "2026-02-01T00:00:00.000Z",
+      };
+      const result = authorizationModel.filterOutput(
+        createdUser,
+        "read:session",
+        resource,
+      );
+      expect(result).toEqual({
+        id: "session-id",
+        token: "token-abc",
+        user_id: 1,
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+        expires_at: "2026-02-01T00:00:00.000Z",
+      });
+    });
+
+    test("throws ForbiddenError for `read:session` when user does not own the session", () => {
+      const createdUser = {
+        id: 2,
+        features: ["read:session"],
+      };
+      const resource = {
+        id: "session-id",
+        token: "token-abc",
+        user_id: 1,
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+        expires_at: "2026-02-01T00:00:00.000Z",
+      };
+      expect(() =>
+        authorizationModel.filterOutput(createdUser, "read:session", resource),
+      ).toThrow(ForbiddenError);
     });
   });
 });
