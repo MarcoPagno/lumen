@@ -1,3 +1,4 @@
+import webserver from "infra/webserver.js";
 import orchestrator from "tests/orchestrator.js";
 
 beforeAll(async () => {
@@ -9,7 +10,7 @@ beforeAll(async () => {
 describe("POST /api/v1/migrations", () => {
   describe("Anonymous user", () => {
     test("posting pending migrations", async () => {
-      const response = await fetch("http://localhost:3000/api/v1/migrations", {
+      const response = await fetch(`${webserver.origin}/api/v1/migrations`, {
         method: "POST",
       });
       expect(response.status).toBe(403);
@@ -26,14 +27,13 @@ describe("POST /api/v1/migrations", () => {
 
   describe("Authenticated user", () => {
     test("posting pending migrations", async () => {
-      const defaultUser = await orchestrator.createUser();
-      const activatedUser = await orchestrator.activateUser(defaultUser);
-      const sessionObject = await orchestrator.createSession(activatedUser);
+      const { session } =
+        await orchestrator.createUserActivateAndReturnSession();
 
-      const response = await fetch("http://localhost:3000/api/v1/migrations", {
+      const response = await fetch(`${webserver.origin}/api/v1/migrations`, {
         method: "POST",
         headers: {
-          Cookie: `session_id=${sessionObject.token}`,
+          Cookie: `session_id=${session.token}`,
         },
       });
       expect(response.status).toBe(403);
@@ -50,21 +50,15 @@ describe("POST /api/v1/migrations", () => {
 
   describe("Privileged user", () => {
     test("posting pending migrations with `create:migration` feature", async () => {
-      const privilegedUser = await orchestrator.createUser();
+      const { session, user } =
+        await orchestrator.createUserActivateAndReturnSession();
 
-      const activatedPrivilegedUser =
-        await orchestrator.activateUser(privilegedUser);
-      await orchestrator.addFeaturesToUser(privilegedUser, [
-        "create:migration",
-      ]);
-      const privilegedUserSession = await orchestrator.createSession(
-        activatedPrivilegedUser,
-      );
+      await orchestrator.addFeaturesToUser(user, ["create:migration"]);
 
-      const response = await fetch("http://localhost:3000/api/v1/migrations", {
+      const response = await fetch(`${webserver.origin}/api/v1/migrations`, {
         method: "POST",
         headers: {
-          Cookie: `session_id=${privilegedUserSession.token}`,
+          Cookie: `session_id=${session.token}`,
         },
       });
       expect(response.status).toBe(200);

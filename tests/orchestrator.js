@@ -3,8 +3,9 @@ import retry from "async-retry";
 import userModel from "models/user.js";
 import migrator from "models/migrator.js";
 import sessionModel from "models/session.js";
-import database from "infra/database.js";
 import activationModel from "models/activation.js";
+import database from "infra/database.js";
+import webserver from "infra/webserver.js";
 
 const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
@@ -19,7 +20,7 @@ async function waitForAllServices() {
     });
 
     async function fetchStatusPage() {
-      const response = await fetch("http://localhost:3000/api/v1/status");
+      const response = await fetch(`${webserver.origin}/api/v1/status`);
 
       if (response.status !== 200) {
         throw Error();
@@ -68,6 +69,13 @@ async function activateUser(inactiveUser) {
   return await activationModel.activateUserbyUserId(inactiveUser.id);
 }
 
+async function createUserActivateAndReturnSession() {
+  let user = await createUser();
+  user = await activateUser(user);
+  const session = await createSession(user);
+  return { user, session };
+}
+
 async function addFeaturesToUser(userObject, features) {
   const updatedUser = await userModel.addFeatures(userObject.id, features);
   return updatedUser;
@@ -107,6 +115,7 @@ const orchestrator = {
   activateUser,
   addFeaturesToUser,
   createSession,
+  createUserActivateAndReturnSession,
   deleteAllEmails,
   getLastEmail,
   extractUUID,

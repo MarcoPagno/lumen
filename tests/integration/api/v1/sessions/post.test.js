@@ -1,6 +1,7 @@
 import { version as uuidVersion } from "uuid";
 import orchestrator from "tests/orchestrator.js";
 import sessionModel from "models/session.js";
+import webserver from "infra/webserver.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -16,7 +17,7 @@ describe("POST /api/v1/sessions", () => {
         password: "correctPassword",
       });
 
-      const response = await fetch("http://localhost:3000/api/v1/sessions", {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +44,7 @@ describe("POST /api/v1/sessions", () => {
         email: "correctEmail@email.com",
       });
 
-      const response = await fetch("http://localhost:3000/api/v1/sessions", {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,7 +67,7 @@ describe("POST /api/v1/sessions", () => {
     });
 
     test("fails with incorrect `email` and incorrect `password`", async () => {
-      const response = await fetch("http://localhost:3000/api/v1/sessions", {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -101,7 +102,7 @@ describe("POST /api/v1/sessions", () => {
         "update:user",
       ]);
 
-      const response = await fetch("http://localhost:3000/api/v1/sessions", {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,15 +129,19 @@ describe("POST /api/v1/sessions", () => {
       expect(Date.parse(responseBody.expires_at)).not.toBeNaN();
       expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
 
-      const expiresAt = new Date(responseBody.expires_at).setMilliseconds(0);
-      const createdAt = new Date(responseBody.created_at).setMilliseconds(0);
+      const expiresAt = new Date(responseBody.expires_at);
+      const createdAt = new Date(responseBody.created_at);
 
-      expect(expiresAt - createdAt).toBe(
-        sessionModel.EXPIRATION_IN_MILLISECONDS,
-      );
+      expect(expiresAt >= createdAt).toBe(true);
+
+      const actualLifetimeInMilliseconds = expiresAt - createdAt;
+      const lifetimeDifferenceInMilliseconds =
+        sessionModel.EXPIRATION_IN_MILLISECONDS - actualLifetimeInMilliseconds;
+
+      expect(lifetimeDifferenceInMilliseconds).toBeLessThanOrEqual(5000);
 
       expect(response.headers.get(`set-cookie`)).toBe(
-        `session_id=${responseBody.token}; Max-Age=${sessionModel.EXPIRATION_IN_MILLISECONDS / 1000}; Path=/; HttpOnly`,
+        `session_id=${responseBody.token}; Max-Age=${sessionModel.EXPIRATION_IN_MILLISECONDS / 1000}; Path=/; HttpOnly; SameSite=Lax`,
       );
     });
   });

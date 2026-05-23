@@ -2,6 +2,7 @@ import { version as uuidVersion } from "uuid";
 import orchestrator from "tests/orchestrator.js";
 import user from "models/user.js";
 import passwordModel from "models/password.js";
+import webserver from "infra/webserver.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -12,7 +13,7 @@ beforeAll(async () => {
 describe("POST /api/v1/users", () => {
   describe("Anonymous user", () => {
     test("creates user with valid and unique data", async () => {
-      const response = await fetch("http://localhost:3000/api/v1/users", {
+      const response = await fetch(`${webserver.origin}/api/v1/users`, {
         method: "POST",
         type: "application/json",
         headers: {
@@ -54,8 +55,8 @@ describe("POST /api/v1/users", () => {
       expect(incorrectPasswordMatch).toBe(false);
     });
 
-    test("fails when username is already in use", async () => {
-      const response1 = await fetch("http://localhost:3000/api/v1/users", {
+    test("fails when `username` is already in use", async () => {
+      const response1 = await fetch(`${webserver.origin}/api/v1/users`, {
         method: "POST",
         type: "application/json",
         headers: {
@@ -69,7 +70,7 @@ describe("POST /api/v1/users", () => {
       });
       expect(response1.status).toBe(201);
 
-      const response = await fetch("http://localhost:3000/api/v1/users", {
+      const response = await fetch(`${webserver.origin}/api/v1/users`, {
         method: "POST",
         type: "application/json",
         headers: {
@@ -92,8 +93,8 @@ describe("POST /api/v1/users", () => {
       });
     });
 
-    test("fails when email is already in use", async () => {
-      const response1 = await fetch("http://localhost:3000/api/v1/users", {
+    test("fails when `email` is already in use", async () => {
+      const response1 = await fetch(`${webserver.origin}/api/v1/users`, {
         method: "POST",
         type: "application/json",
         headers: {
@@ -107,7 +108,7 @@ describe("POST /api/v1/users", () => {
       });
       expect(response1.status).toBe(201);
 
-      const response = await fetch("http://localhost:3000/api/v1/users", {
+      const response = await fetch(`${webserver.origin}/api/v1/users`, {
         method: "POST",
         type: "application/json",
         headers: {
@@ -133,11 +134,10 @@ describe("POST /api/v1/users", () => {
 
   describe("Authenticated user", () => {
     test("receives 403 while logged", async () => {
-      const user1 = await orchestrator.createUser();
-      await orchestrator.activateUser(user1);
-      const user1SessionObject = await orchestrator.createSession(user1);
+      const { session: user1SessionObject } =
+        await orchestrator.createUserActivateAndReturnSession();
 
-      const user2Response = await fetch(`http://localhost:3000/api/v1/users`, {
+      const user2Response = await fetch(`${webserver.origin}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

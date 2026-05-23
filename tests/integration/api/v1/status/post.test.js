@@ -1,3 +1,4 @@
+import webserver from "infra/webserver.js";
 import orchestrator from "tests/orchestrator.js";
 
 beforeAll(async () => {
@@ -7,7 +8,7 @@ beforeAll(async () => {
 describe("POST /api/v1/status", () => {
   describe("Anonymous user", () => {
     test("returns 405 when trying to POST against /status", async () => {
-      const response = await fetch("http://localhost:3000/api/v1/status", {
+      const response = await fetch(`${webserver.origin}/api/v1/status`, {
         method: "POST",
       });
       expect(response.status).toBe(405);

@@ -1,5 +1,6 @@
 import orchestrator from "tests/orchestrator.js";
 import sessionModel from "models/session.js";
+import webserver from "infra/webserver.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -13,7 +14,7 @@ describe("DELETE /api/v1/sessions", () => {
       const nonexistentToken =
         "b85c1ca401abd3dff6ae4c5d426163d434ffbd6197af97d1d0a804afcae9402b755048f63d41f1e3961b744fdea560dd";
 
-      const response = await fetch("http://localhost:3000/api/v1/sessions", {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: "DELETE",
         headers: {
           Cookie: `session_id=` + nonexistentToken,
@@ -36,15 +37,15 @@ describe("DELETE /api/v1/sessions", () => {
         now: new Date(Date.now() - sessionModel.EXPIRATION_IN_MILLISECONDS),
       });
 
-      const newUser = await orchestrator.createUser();
-      const newSession = await orchestrator.createSession(newUser);
+      const { session } =
+        await orchestrator.createUserActivateAndReturnSession();
 
       jest.useRealTimers();
 
-      const response = await fetch("http://localhost:3000/api/v1/sessions", {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: "DELETE",
         headers: {
-          Cookie: `session_id=` + newSession.token,
+          Cookie: `session_id=` + session.token,
         },
       });
       expect(response.status).toBe(401);
@@ -60,15 +61,15 @@ describe("DELETE /api/v1/sessions", () => {
     });
 
     test("With valid session", async () => {
-      const newUser = await orchestrator.createUser();
-      const sessionObject = await orchestrator.createSession(newUser);
+      const { session, user } =
+        await orchestrator.createUserActivateAndReturnSession();
 
       const responseDeleted = await fetch(
-        "http://localhost:3000/api/v1/sessions",
+        `${webserver.origin}/api/v1/sessions`,
         {
           method: "DELETE",
           headers: {
-            Cookie: `session_id=` + sessionObject.token,
+            Cookie: `session_id=` + session.token,
           },
         },
       );
@@ -76,19 +77,19 @@ describe("DELETE /api/v1/sessions", () => {
 
       const responseDeletedBody = await responseDeleted.json();
       expect(responseDeletedBody).toEqual({
-        id: sessionObject.id,
-        token: sessionObject.token,
-        user_id: newUser.id,
-        created_at: sessionObject.created_at.toISOString(),
+        id: session.id,
+        token: session.token,
+        user_id: user.id,
+        created_at: session.created_at.toISOString(),
         expires_at: responseDeletedBody.expires_at,
         updated_at: responseDeletedBody.updated_at,
       });
 
       expect(
-        responseDeletedBody.expires_at < sessionObject.expires_at.toISOString(),
+        responseDeletedBody.expires_at < session.expires_at.toISOString(),
       ).toBe(true);
       expect(
-        responseDeletedBody.updated_at > sessionObject.updated_at.toISOString(),
+        responseDeletedBody.updated_at > session.updated_at.toISOString(),
       ).toBe(true);
 
       //Set-Cookie assertions
@@ -96,10 +97,10 @@ describe("DELETE /api/v1/sessions", () => {
         `session_id=invalid; Max-Age=-1; Path=/; HttpOnly`,
       );
 
-      const response = await fetch("http://localhost:3000/api/v1/user", {
+      const response = await fetch(`${webserver.origin}/api/v1/user`, {
         method: "GET",
         headers: {
-          Cookie: `session_id=` + sessionObject.token,
+          Cookie: `session_id=` + session.token,
         },
       });
       expect(response.status).toBe(401);
