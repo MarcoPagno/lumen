@@ -35,14 +35,13 @@ describe("GET /api/v1/status", () => {
 
   describe("Default user", () => {
     test("return current system status", async () => {
-      const newUser = await orchestrator.createUser();
-      const activatedNewUser = await orchestrator.activateUser(newUser);
-      const sessionObject = await orchestrator.createSession(activatedNewUser);
+      const { session } =
+        await orchestrator.createUserActivateAndReturnSession();
 
       const response = await fetch(`${webserver.origin}/api/v1/status`, {
         method: "GET",
         headers: {
-          Cookie: `session_id=${sessionObject.token}`,
+          Cookie: `session_id=${session.token}`,
         },
       });
       expect(response.status).toBe(200);
@@ -69,21 +68,15 @@ describe("GET /api/v1/status", () => {
 
   describe("Privileged user", () => {
     test("return current system status", async () => {
-      const privilegedUser = await orchestrator.createUser();
+      const { session, user } =
+        await orchestrator.createUserActivateAndReturnSession();
 
-      const activatedPrivilegedUser =
-        await orchestrator.activateUser(privilegedUser);
-
-      await orchestrator.addFeaturesToUser(privilegedUser, ["read:status:all"]);
-
-      const privilegedUserSession = await orchestrator.createSession(
-        activatedPrivilegedUser,
-      );
+      await orchestrator.addFeaturesToUser(user, ["read:status:all"]);
 
       const response = await fetch(`${webserver.origin}/api/v1/status`, {
         method: "GET",
         headers: {
-          Cookie: `session_id=${privilegedUserSession.token}`,
+          Cookie: `session_id=${session.token}`,
         },
       });
       expect(response.status).toBe(200);

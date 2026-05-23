@@ -45,16 +45,15 @@ describe("PATCH /api/v1/users/[username]", () => {
 
   describe("Authenticated user", () => {
     test("fails when to be updated `username` is not found", async () => {
-      const createdUser = await orchestrator.createUser();
-      const activatedUser = await orchestrator.activateUser(createdUser);
-      const sessionObject = await orchestrator.createSession(activatedUser);
+      const { session } =
+        await orchestrator.createUserActivateAndReturnSession();
 
       const response = await fetch(
         `${webserver.origin}/api/v1/users/userUnexistent`,
         {
           method: "PATCH",
           headers: {
-            Cookie: `session_id=${sessionObject.token}`,
+            Cookie: `session_id=${session.token}`,
           },
         },
       );
@@ -172,17 +171,16 @@ describe("PATCH /api/v1/users/[username]", () => {
     });
 
     test("updates user with new valid `username`", async () => {
-      const createdUser = await orchestrator.createUser();
-      const activatedUser = await orchestrator.activateUser(createdUser);
-      const sessionObject = await orchestrator.createSession(activatedUser);
+      const { session, user } =
+        await orchestrator.createUserActivateAndReturnSession();
 
       const response = await fetch(
-        `${webserver.origin}/api/v1/users/${createdUser.username}`,
+        `${webserver.origin}/api/v1/users/${user.username}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            Cookie: `session_id=${sessionObject.token}`,
+            Cookie: `session_id=${session.token}`,
           },
           body: JSON.stringify({
             username: "newUser2",

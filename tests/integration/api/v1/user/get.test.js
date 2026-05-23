@@ -33,15 +33,15 @@ describe("GET /api/v1/user", () => {
         now: new Date(Date.now() - sessionModel.EXPIRATION_IN_MILLISECONDS),
       });
 
-      const createdUser = await orchestrator.createUser();
-      const sessionObject = await orchestrator.createSession(createdUser);
+      const { session } =
+        await orchestrator.createUserActivateAndReturnSession();
 
       jest.useRealTimers();
 
       const response = await fetch(`${webserver.origin}/api/v1/user`, {
         method: "GET",
         headers: {
-          Cookie: `session_id=` + sessionObject.token,
+          Cookie: `session_id=` + session.token,
         },
       });
       expect(response.status).toBe(401);
@@ -88,11 +88,8 @@ describe("GET /api/v1/user", () => {
     });
 
     test("successfully when sends session and receives user", async () => {
-      const createdUser = await orchestrator.createUser();
-
-      const activatedUser = await orchestrator.activateUser(createdUser);
-
-      const session = await orchestrator.createSession(createdUser);
+      const { session, user } =
+        await orchestrator.createUserActivateAndReturnSession();
 
       const response = await fetch(`${webserver.origin}/api/v1/user`, {
         method: "GET",
@@ -105,12 +102,12 @@ describe("GET /api/v1/user", () => {
       const responseBody = await response.json();
 
       expect(responseBody).toEqual({
-        id: createdUser.id,
-        username: createdUser.username,
-        email: createdUser.email,
+        id: user.id,
+        username: user.username,
+        email: user.email,
         features: ["create:session", "read:session", "update:user"],
-        created_at: createdUser.created_at.toISOString(),
-        updated_at: activatedUser.updated_at.toISOString(),
+        created_at: user.created_at.toISOString(),
+        updated_at: user.updated_at.toISOString(),
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
@@ -141,40 +138,33 @@ describe("GET /api/v1/user", () => {
         ),
       });
 
-      const createdUser = await orchestrator.createUser();
-
-      await orchestrator.activateUser(createdUser);
-
-      const sessionObject = await orchestrator.createSession(createdUser);
+      const { session } =
+        await orchestrator.createUserActivateAndReturnSession();
 
       jest.useRealTimers();
 
       //almost ending
-      expect(sessionObject.expires_at < new Date(Date.now() + 600)).toBe(true);
+      expect(session.expires_at < new Date(Date.now() + 600)).toBe(true);
 
       const response = await fetch(`${webserver.origin}/api/v1/user`, {
         method: "GET",
         headers: {
-          Cookie: `session_id=` + sessionObject.token,
+          Cookie: `session_id=` + session.token,
         },
       });
       expect(response.status).toBe(200);
 
-      const renewedSessionObject = await sessionModel.findValidSessionByToken(
-        sessionObject.token,
+      const renewedSession = await sessionModel.findValidSessionByToken(
+        session.token,
       );
 
       //RENEWED
-      expect(renewedSessionObject.expires_at > sessionObject.expires_at).toBe(
-        true,
-      );
-      expect(renewedSessionObject.updated_at > sessionObject.updated_at).toBe(
-        true,
-      );
+      expect(renewedSession.expires_at > session.expires_at).toBe(true);
+      expect(renewedSession.updated_at > session.updated_at).toBe(true);
 
       //set-cookies assertions
       expect(response.headers.get(`set-cookie`)).toBe(
-        `session_id=${renewedSessionObject.token}; Max-Age=${sessionModel.EXPIRATION_IN_MILLISECONDS / 1000}; Path=/; HttpOnly; SameSite=Lax`,
+        `session_id=${renewedSession.token}; Max-Age=${sessionModel.EXPIRATION_IN_MILLISECONDS / 1000}; Path=/; HttpOnly; SameSite=Lax`,
       );
 
       expect(response.headers.get(`Cache-Control`)).toBe(

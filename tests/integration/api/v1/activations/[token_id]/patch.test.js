@@ -153,9 +153,8 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
 
   describe("Authenticated user", () => {
     test("returns 403 when user is already authenticated", async () => {
-      const user1 = await orchestrator.createUser();
-      await orchestrator.activateUser(user1);
-      const user1SessionObject = await orchestrator.createSession(user1);
+      const { session: user1SessionObject } =
+        await orchestrator.createUserActivateAndReturnSession();
 
       const user2 = await orchestrator.createUser();
       const user2ActivationToken = await activationModel.create(user2);

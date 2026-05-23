@@ -69,6 +69,13 @@ async function activateUser(inactiveUser) {
   return await activationModel.activateUserbyUserId(inactiveUser.id);
 }
 
+async function createUserActivateAndReturnSession() {
+  let user = await createUser();
+  user = await activateUser(user);
+  const session = await createSession(user);
+  return { user, session };
+}
+
 async function addFeaturesToUser(userObject, features) {
   const updatedUser = await userModel.addFeatures(userObject.id, features);
   return updatedUser;
@@ -108,6 +115,7 @@ const orchestrator = {
   activateUser,
   addFeaturesToUser,
   createSession,
+  createUserActivateAndReturnSession,
   deleteAllEmails,
   getLastEmail,
   extractUUID,
