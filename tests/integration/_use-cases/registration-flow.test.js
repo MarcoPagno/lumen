@@ -46,7 +46,7 @@ describe("Use case: Registration Flow (successful path)", () => {
   test("sends account activation email after registration", async () => {
     const lastEmail = await orchestrator.getLastEmail();
 
-    expect(lastEmail.sender).toBe("<contact@lumen.com.br>");
+    expect(lastEmail.sender).toBe("<contact@marcopagno.com.br>");
     expect(lastEmail.recipients[0]).toBe("<registration.flow@email.com>");
     expect(lastEmail.subject).toBe("Activate your registration on Lumen!");
     expect(lastEmail.text).toContain("RegistrationFlow");
