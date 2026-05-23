@@ -37,7 +37,7 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(responseBody).toEqual({
         name: "ForbiddenError",
         message: "Insufficient permissions to perform this action",
-        action: 'Ensure the user has the required feature: "update:user"',
+        action: 'Ensure the user has the required feature: "update:user:self"',
         status_code: 403,
       });
     });
@@ -194,7 +194,7 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: "newUser2",
-        features: ["create:session", "read:session", "update:user"],
+        features: ["create:session", "read:session", "update:user:self"],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
@@ -231,7 +231,7 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: createdUser.username,
-        features: ["create:session", "read:session", "update:user"],
+        features: ["create:session", "read:session", "update:user:self"],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
@@ -274,7 +274,7 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: createdUser.username,
-        features: ["create:session", "read:session", "update:user"],
+        features: ["create:session", "read:session", "update:user:self"],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });

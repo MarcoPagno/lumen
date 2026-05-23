@@ -105,7 +105,7 @@ describe("GET /api/v1/user", () => {
         id: user.id,
         username: user.username,
         email: user.email,
-        features: ["create:session", "read:session", "update:user"],
+        features: ["create:session", "read:session", "update:user:self"],
         created_at: user.created_at.toISOString(),
         updated_at: user.updated_at.toISOString(),
       });
