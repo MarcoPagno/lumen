@@ -5,6 +5,8 @@ async function fetchAPI(key) {
   return response.json();
 }
 
+StatusPage.title = "Status";
+
 export default function StatusPage() {
   return (
     <>
