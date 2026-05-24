@@ -52,13 +52,13 @@ async function sendEmailToUser(user, activationToken) {
   await email.send({
     from: "Lumen <contact@marcopagno.com.br>",
     to: user.email,
-    subject: "Activate your registration on Lumen!",
-    text: `${user.username}, click on the link to activate your email:
+    subject: "Ative seu registro no Lumen!",
+    text: `${user.username}, clique no link para ativar sua conta:
 
-${webserver.origin}/register/activate/${activationToken.id}
+${webserver.origin}/cadastro/ativar/${activationToken.id}
 
-Regards,
-Team Lumen`,
+Atenciosamente,
+Time Lumen`,
   });
 }
 
