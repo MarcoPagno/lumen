@@ -55,6 +55,160 @@ describe("POST /api/v1/users", () => {
       expect(incorrectPasswordMatch).toBe(false);
     });
 
+    test("fails when username is too short", async () => {
+      const responseUsername = await fetch(`${webserver.origin}/api/v1/users`, {
+        method: "POST",
+        type: "application/json",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: "us",
+          email: "usernameWrong@email.com",
+          password: "password123",
+        }),
+      });
+      expect(responseUsername.status).toBe(400);
+
+      const responseUsernameBody = await responseUsername.json();
+      expect(responseUsernameBody).toEqual({
+        name: "ValidationError",
+        message: "Username must be between 3 and 30 characters",
+        action: "Choose a username with the correct length",
+        status_code: 400,
+      });
+    });
+
+    test("fails when username is too long", async () => {
+      const responseUsername1 = await fetch(
+        `${webserver.origin}/api/v1/users`,
+        {
+          method: "POST",
+          type: "application/json",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: "usernameWrongCauseItsToooooooBig",
+            email: "usernameWrong@email.com",
+            password: "password123",
+          }),
+        },
+      );
+      expect(responseUsername1.status).toBe(400);
+
+      const responseUsername1Body = await responseUsername1.json();
+      expect(responseUsername1Body).toEqual({
+        name: "ValidationError",
+        message: "Username must be between 3 and 30 characters",
+        action: "Choose a username with the correct length",
+        status_code: 400,
+      });
+    });
+
+    test("fails when username has special characters", async () => {
+      const responseUsername2 = await fetch(
+        `${webserver.origin}/api/v1/users`,
+        {
+          method: "POST",
+          type: "application/json",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: "usernameWrongCauseHas@",
+            email: "usernameWrong@email.com",
+            password: "password123",
+          }),
+        },
+      );
+      expect(responseUsername2.status).toBe(400);
+
+      const responseUsername2Body = await responseUsername2.json();
+      expect(responseUsername2Body).toEqual({
+        name: "ValidationError",
+        message: "Username can only contain letters and numbers",
+        action: "Remove any special characters from the username",
+        status_code: 400,
+      });
+    });
+
+    test("fails when email format is invalid", async () => {
+      const responseEmail = await fetch(`${webserver.origin}/api/v1/users`, {
+        method: "POST",
+        type: "application/json",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: "emailFormatWrong",
+          email: "emailFormatWrongemail.com",
+          password: "password123",
+        }),
+      });
+      expect(responseEmail.status).toBe(400);
+
+      const responseEmailBody = await responseEmail.json();
+      expect(responseEmailBody).toEqual({
+        name: "ValidationError",
+        message: "Email format is wrong",
+        action: "Send a valid email",
+        status_code: 400,
+      });
+    });
+
+    test("fails when password is too short", async () => {
+      const responsePassword = await fetch(`${webserver.origin}/api/v1/users`, {
+        method: "POST",
+        type: "application/json",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: "passwordFormatWrong",
+          email: "passwordFormatWrong@email.com",
+          password: "paswo",
+        }),
+      });
+      expect(responsePassword.status).toBe(400);
+
+      const responsePasswordBody = await responsePassword.json();
+      expect(responsePasswordBody).toEqual({
+        name: "ValidationError",
+        message: "Password must be between 6 and 72 characters",
+        action: "Choose a password with the correct length",
+        status_code: 400,
+      });
+    });
+
+    test("fails when password is too long", async () => {
+      const responsePassword1 = await fetch(
+        `${webserver.origin}/api/v1/users`,
+        {
+          method: "POST",
+          type: "application/json",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: "passwordFormatWrong",
+            email: "passwordFormatWrong@email.com",
+            password:
+              "passwordErrorCauseItsTooBigpasswordErrorCauseItsTooBigpasswordErrorCauseItsTooBig",
+          }),
+        },
+      );
+      expect(responsePassword1.status).toBe(400);
+
+      const responsePassword1Body = await responsePassword1.json();
+      expect(responsePassword1Body).toEqual({
+        name: "ValidationError",
+        message: "Password must be between 6 and 72 characters",
+        action: "Choose a password with the correct length",
+        status_code: 400,
+      });
+    });
+
     test("fails when `username` is already in use", async () => {
       const response1 = await fetch(`${webserver.origin}/api/v1/users`, {
         method: "POST",
