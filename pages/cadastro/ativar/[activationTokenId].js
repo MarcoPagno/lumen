@@ -49,3 +49,4 @@ export default function AtivarPage() {
 }
 
 AtivarPage.title = "Ativar conta";
+AtivarPage.isPublic = true;

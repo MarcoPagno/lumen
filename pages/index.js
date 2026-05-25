@@ -3,5 +3,6 @@ function Home() {
 }
 
 Home.title = "Home";
+Home.isPublic = true;
 
 export default Home;

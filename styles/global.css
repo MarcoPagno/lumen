@@ -32,6 +32,10 @@
   --button-default-bgColor-rest: #1e1730;
   --button-default-fgColor-rest: #ede8f5;
   --button-default-borderColor-rest: #4a3570;
+
+  --bgColor-danger-muted: #3d0f0f;
+  --borderColor-danger-muted: #8b2020;
+  --fgColor-danger: #ff9999;
 }
 
 body {

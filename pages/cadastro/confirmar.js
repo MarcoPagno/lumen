@@ -11,3 +11,4 @@ export default function ConfirmarPage() {
 }
 
 ConfirmarPage.title = "Confirme seu email";
+ConfirmarPage.isPublic = true;
