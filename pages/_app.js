@@ -1,4 +1,4 @@
-import "styles/global.css";
+import "styles/globals.css";
 import DefaultLayout from "components/DefaultLayout";
 import { useRequireAuth } from "hooks/useRequireAuth";
 

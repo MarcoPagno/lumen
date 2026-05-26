@@ -1,5 +1,2 @@
-const nextConfig = {
-  transpilePackages: ["@primer/react"],
-};
-
+const nextConfig = {};
 export default nextConfig;

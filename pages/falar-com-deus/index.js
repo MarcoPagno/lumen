@@ -1,4 +1,3 @@
-import { PageLayout } from "@primer/react";
 import { parse } from "node-html-parser";
 
 export async function getStaticProps() {
@@ -17,11 +16,11 @@ export async function getStaticProps() {
 
 export default function FalarComDeusPage({ article }) {
   return (
-    <PageLayout.Content>
+    <>
       <h1>Falar com Deus</h1>
 
       <div dangerouslySetInnerHTML={{ __html: article }} />
-    </PageLayout.Content>
+    </>
   );
 }
 

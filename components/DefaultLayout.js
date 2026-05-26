@@ -1,65 +1,44 @@
-import { ThemeProvider, BaseStyles } from "@primer/react";
 import Head from "next/head";
 import { useState, useEffect } from "react";
 
 export default function DefaultLayout({ children, title }) {
   const pageTitle = title ? `${title} · Lumen` : "Lumen";
-  const [colorMode, setColorMode] = useState("day");
+  const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("lumen:colorMode");
-    if (saved) {
-      setColorMode(saved);
-    } else {
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      ).matches;
-      setColorMode(prefersDark ? "night" : "day");
-    }
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
+    const dark = saved ? saved === "dark" : prefersDark;
+    setIsDark(dark);
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    document.body.setAttribute(
-      "data-color-mode",
-      colorMode === "day" ? "light" : "dark",
-    );
-  }, [colorMode]);
+    if (!mounted) return;
+    document.documentElement.classList.toggle("dark", isDark);
+    localStorage.setItem("lumen:colorMode", isDark ? "dark" : "light");
+  }, [isDark, mounted]);
 
   function toggleColorMode() {
-    const next = colorMode === "day" ? "night" : "day";
-    setColorMode(next);
-    localStorage.setItem("lumen:colorMode", next);
+    setIsDark((prev) => !prev);
   }
 
   return (
-    <ThemeProvider
-      colorMode={mounted ? colorMode : "day"}
-      dayScheme="light"
-      nightScheme="dark"
-    >
-      <BaseStyles>
-        <Head>
-          <meta charSet="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>{pageTitle}</title>
-        </Head>
-        <div
-          style={{
-            minHeight: "100vh",
-            backgroundColor: "var(--lumen-bg)",
-            color: "var(--lumen-fg)",
-          }}
-        >
-          {mounted && (
-            <button onClick={toggleColorMode}>
-              {colorMode === "day" ? "🌙" : "☀️"}
-            </button>
-          )}
-          {children}
-        </div>
-      </BaseStyles>
-    </ThemeProvider>
+    <>
+      <Head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{pageTitle}</title>
+      </Head>
+      <div className="min-h-screen bg-background text-foreground">
+        {mounted && (
+          <button onClick={toggleColorMode}>{isDark ? "☀️" : "🌙"}</button>
+        )}
+        {children}
+      </div>
+    </>
   );
 }
