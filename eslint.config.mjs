@@ -54,6 +54,7 @@ export default defineConfig([
       "components/**/*.{js,jsx}",
       "pages/**/*.{js,jsx}",
       "hooks/**/*.{js,jsx}",
+      "contexts/**/*.{js,jsx}",
     ],
     rules: {
       "react-hooks/set-state-in-effect": "off",

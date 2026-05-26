@@ -1,20 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { useUser } from "hooks/useUser.js";
+import { useUser } from "hooks/useUser";
 
 export function useRequireAuth(isPublic, redirectIfAuthenticated) {
   const router = useRouter();
-  const { getUser, fetchUser, clearUser } = useUser();
-  const [mounted, setMounted] = useState(false);
+  const { user, isLoading, fetchUser, clearUser } = useUser();
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (isLoading) return;
 
-  useEffect(() => {
-    if (!mounted) return;
-
-    const user = getUser();
     const isLoggedIn = !!user;
 
     if (redirectIfAuthenticated && isLoggedIn) {
@@ -34,5 +28,5 @@ export function useRequireAuth(isPublic, redirectIfAuthenticated) {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.pathname, mounted, isPublic]);
+  }, [router.pathname, isLoading, isPublic]);
 }
