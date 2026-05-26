@@ -1,3 +1,4 @@
+import { Link } from "@primer/react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import activationService from "services/activationService.js";
@@ -34,7 +35,10 @@ export default function AtivarPage() {
     return (
       <>
         <h1>Conta ativada!</h1>
-        <p>Sua conta foi ativada com sucesso. Você já pode fazer login.</p>
+        <p>
+          Sua conta foi ativada com sucesso. Você já pode fazer{" "}
+          <Link href="/login">login</Link>.
+        </p>
       </>
     );
   }
