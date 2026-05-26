@@ -5,9 +5,7 @@ export async function getStaticProps() {
   const html = await res.text();
   const root = parse(html);
   const article = root.querySelector("article");
-
   article.querySelector("figure")?.remove();
-
   return {
     props: { article: article?.innerHTML ?? "" },
     revalidate: 3600,
@@ -16,11 +14,10 @@ export async function getStaticProps() {
 
 export default function FalarComDeusPage({ article }) {
   return (
-    <>
-      <h1>Falar com Deus</h1>
-
-      <div dangerouslySetInnerHTML={{ __html: article }} />
-    </>
+    <article
+      className="prose dark:prose-invert max-w-none"
+      dangerouslySetInnerHTML={{ __html: article }}
+    />
   );
 }
 
