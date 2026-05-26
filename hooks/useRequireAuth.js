@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useUser } from "hooks/useUser.js";
 
-export function useRequireAuth(isPublic) {
+export function useRequireAuth(isPublic, redirectIfAuthenticated) {
   const router = useRouter();
   const { getUser, fetchUser, clearUser } = useUser();
   const [mounted, setMounted] = useState(false);
@@ -17,7 +17,7 @@ export function useRequireAuth(isPublic) {
     const user = getUser();
     const isLoggedIn = !!user;
 
-    if (isPublic && isLoggedIn) {
+    if (redirectIfAuthenticated && isLoggedIn) {
       router.push("/");
       return;
     }

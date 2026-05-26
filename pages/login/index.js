@@ -84,3 +84,4 @@ export default function LoginPage() {
 
 LoginPage.title = "Login";
 LoginPage.isPublic = true;
+LoginPage.redirectIfAuthenticated = true;

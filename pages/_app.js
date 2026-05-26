@@ -13,12 +13,13 @@ const poppins = Poppins({
 export default function App({ Component, pageProps }) {
   const title = Component.title;
   const isPublic = Component.isPublic ?? false;
+  const redirectIfAuthenticated = Component.redirectIfAuthenticated ?? false;
 
   useEffect(() => {
     document.documentElement.classList.add(poppins.variable, "font-sans");
   }, []);
 
-  useRequireAuth(isPublic);
+  useRequireAuth(isPublic, redirectIfAuthenticated);
 
   return (
     <DefaultLayout title={title}>
