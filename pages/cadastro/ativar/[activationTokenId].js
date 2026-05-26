@@ -1,21 +1,20 @@
-import { Link } from "@primer/react";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import activationService from "services/activationService.js";
 import { parseApiError } from "utils/api.js";
 
 export default function AtivarPage() {
   const router = useRouter();
   const { activationTokenId } = router.query;
-  const [status, setStatus] = useState("loading"); // loading | success | error
+  const [status, setStatus] = useState("loading");
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     if (!activationTokenId) return;
-
     async function activate() {
       const response = await activationService.activate(activationTokenId);
-
       if (response.ok) {
         setStatus("success");
       } else {
@@ -23,7 +22,6 @@ export default function AtivarPage() {
         setStatus("error");
       }
     }
-
     activate();
   }, [activationTokenId]);
 
@@ -37,7 +35,10 @@ export default function AtivarPage() {
         <h1>Conta ativada!</h1>
         <p>
           Sua conta foi ativada com sucesso. Você já pode fazer{" "}
-          <Link href="/login">login</Link>.
+          <Link href="/login" className="text-primary underline">
+            login
+          </Link>
+          .
         </p>
       </>
     );
@@ -46,7 +47,12 @@ export default function AtivarPage() {
   return (
     <>
       <h1>Falha na ativação</h1>
-      <p>{errorMessage}</p>
+      {errorMessage && (
+        <Alert variant="destructive">
+          <AlertTitle>{errorMessage.message}</AlertTitle>
+          <AlertDescription>{errorMessage.action}</AlertDescription>
+        </Alert>
+      )}
     </>
   );
 }

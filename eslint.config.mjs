@@ -10,6 +10,9 @@ import prettier from "eslint-config-prettier/flat";
 
 export default defineConfig([
   {
+    ignores: ["styles/globals.css"],
+  },
+  {
     files: ["**/*.{js,mjs,cjs,jsx}"],
     plugins: { js },
     extends: ["js/recommended"],
@@ -45,12 +48,6 @@ export default defineConfig([
     language: "markdown/gfm",
     extends: ["markdown/recommended"],
   },
-  {
-    files: ["**/*.css"],
-    plugins: { css },
-    language: "css/css",
-    extends: ["css/recommended"],
-  },
   prettier,
   {
     files: [
@@ -69,6 +66,7 @@ export default defineConfig([
     extends: ["css/recommended"],
     rules: {
       "css/no-invalid-properties": "off",
+      "css/no-unknown-at-rules": "off",
     },
   },
 ]);
