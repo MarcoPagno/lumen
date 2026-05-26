@@ -1,32 +1,29 @@
-import { useState } from "react";
 import { useRouter } from "next/router";
 import { TextInput, Button, FormControl, Link, Banner } from "@primer/react";
 import { useUser } from "hooks/useUser.js";
+import sessionService from "services/sessionService.js";
+import { parseApiError } from "utils/api.js";
+import { useForm } from "hooks/useForm.js";
 
 export default function LoginPage() {
   const router = useRouter();
   const { fetchUser } = useUser();
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
-  function handleChange(event) {
-    setFormData((prev) => ({
-      ...prev,
-      [event.target.name]: event.target.value,
-    }));
-  }
+  const {
+    formData,
+    isLoading,
+    setIsLoading,
+    errorMessage,
+    setErrorMessage,
+    handleChange,
+  } = useForm({ email: "", password: "" });
 
   async function handleSubmit(event) {
     event.preventDefault();
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/v1/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await sessionService.createSession(formData);
 
       if (response.ok) {
         await fetchUser();
@@ -34,8 +31,7 @@ export default function LoginPage() {
         return;
       }
 
-      const { message, action } = await response.json();
-      setErrorMessage({ message, action });
+      setErrorMessage(await parseApiError(response));
     } finally {
       setIsLoading(false);
     }

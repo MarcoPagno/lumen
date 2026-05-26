@@ -5,29 +5,32 @@ import {
   validateEmail,
   validatePassword,
   validateUsername,
-} from "utils/validators";
+} from "utils/validators.js";
+import userService from "services/userService.js";
+import { parseApiError } from "utils/api.js";
+import { useForm } from "hooks/useForm.js";
 
 export default function CadastroPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+
+  const {
+    formData,
+    isLoading,
+    setIsLoading,
+    errorMessage,
+    setErrorMessage,
+    handleChange,
+  } = useForm({
     username: "",
     email: "",
     password: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+
   const [errors, setErrors] = useState({
     username: null,
     email: null,
     password: null,
   });
-
-  function handleChange(event) {
-    setFormData((prev) => ({
-      ...prev,
-      [event.target.name]: event.target.value,
-    }));
-  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -45,17 +48,12 @@ export default function CadastroPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("/api/v1/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await userService.createUser(formData);
       if (response.ok) {
         router.push("/cadastro/confirmar");
         return;
       }
-      const { message, action } = await response.json();
-      setErrorMessage({ message, action });
+      setErrorMessage(await parseApiError(response));
     } finally {
       setIsLoading(false);
     }

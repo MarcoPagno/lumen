@@ -53,7 +53,11 @@ export default defineConfig([
   },
   prettier,
   {
-    files: ["components/**/*.{js,jsx}", "pages/**/*.{js,jsx}"],
+    files: [
+      "components/**/*.{js,jsx}",
+      "pages/**/*.{js,jsx}",
+      "hooks/**/*.{js,jsx}",
+    ],
     rules: {
       "react-hooks/set-state-in-effect": "off",
     },

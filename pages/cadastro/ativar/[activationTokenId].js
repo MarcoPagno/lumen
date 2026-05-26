@@ -1,25 +1,24 @@
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import activationService from "services/activationService.js";
+import { parseApiError } from "utils/api.js";
 
 export default function AtivarPage() {
   const router = useRouter();
   const { activationTokenId } = router.query;
   const [status, setStatus] = useState("loading"); // loading | success | error
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     if (!activationTokenId) return;
 
     async function activate() {
-      const response = await fetch(`/api/v1/activations/${activationTokenId}`, {
-        method: "PATCH",
-      });
+      const response = await activationService.activate(activationTokenId);
 
       if (response.ok) {
         setStatus("success");
       } else {
-        const body = await response.json();
-        setErrorMessage(body.message || "Erro desconhecido.");
+        setErrorMessage(await parseApiError(response));
         setStatus("error");
       }
     }
