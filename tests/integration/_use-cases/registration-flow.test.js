@@ -115,4 +115,50 @@ describe("Use case: Registration Flow (successful path)", () => {
     const userResponseBody = await userResponse.json();
     expect(userResponseBody.id).toBe(createUserResponseBody.id);
   });
+
+  test("returns session data for logout user", async () => {
+    const deleteSessionsResponse = await fetch(
+      `${webserver.origin}/api/v1/sessions`,
+      {
+        method: "DELETE",
+        headers: {
+          cookie: `session_id=${createSessionsResponseBody.token}`,
+        },
+      },
+    );
+    expect(deleteSessionsResponse.status).toBe(200);
+
+    const deleteSessionsResponseBody = await deleteSessionsResponse.json();
+    expect(deleteSessionsResponseBody.user_id).toBe(createUserResponseBody.id);
+
+    const loggedOutUser = await userModel.findUserById(
+      deleteSessionsResponseBody.user_id,
+    );
+    expect(loggedOutUser.features).toEqual([
+      "create:session",
+      "read:session",
+      "update:user:self",
+    ]);
+  });
+
+  test("recreates session after successful relogin", async () => {
+    const recreateSessionsResponse = await fetch(
+      `${webserver.origin}/api/v1/sessions`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: "registration.flow@email.com",
+          password: "password123",
+        }),
+      },
+    );
+    expect(recreateSessionsResponse.status).toBe(201);
+
+    createSessionsResponseBody = await recreateSessionsResponse.json();
+
+    expect(createSessionsResponseBody.user_id).toBe(createUserResponseBody.id);
+  });
 });
