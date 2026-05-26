@@ -45,13 +45,13 @@ describe("Use case: Registration Flow (successful path)", () => {
 
     expect(lastEmail.sender).toBe("<contact@marcopagno.com.br>");
     expect(lastEmail.recipients[0]).toBe("<registration.flow@email.com>");
-    expect(lastEmail.subject).toBe("Activate your registration on Lumen!");
+    expect(lastEmail.subject).toBe("Ative seu registro no Lumen!");
     expect(lastEmail.text).toContain("RegistrationFlow");
 
     activationTokenId = orchestrator.extractUUID(lastEmail.text);
 
     expect(lastEmail.text).toContain(
-      `${webserver.origin}/register/activate/${activationTokenId}`,
+      `${webserver.origin}/cadastro/ativar/${activationTokenId}`,
     );
 
     const activationTokenObject =

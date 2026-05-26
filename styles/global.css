@@ -1,0 +1,45 @@
+[data-color-mode="light"] {
+  --lumen-bg: #faf8f5;
+  --lumen-fg: #1a1025;
+  --lumen-accent: #6b3fa0;
+  --lumen-accent-subtle: #6b3fa015;
+  --lumen-fg-muted: #6b3fa0;
+
+  /* Primer overrides */
+  --bgColor-default: #faf8f5;
+  --fgColor-default: #1a1025;
+  --bgColor-muted: #f0ebf8;
+  --fgColor-muted: #6b3fa0;
+  --control-borderColor-rest: #c9b8e8;
+  --button-default-bgColor-rest: #ede5f8;
+  --button-default-fgColor-rest: #1a1025;
+  --button-default-borderColor-rest: #c9b8e8;
+}
+
+[data-color-mode="dark"] {
+  --lumen-bg: #120d1c;
+  --lumen-fg: #ede8f5;
+  --lumen-accent: #9b6dd0;
+  --lumen-accent-subtle: #9b6dd020;
+  --lumen-fg-muted: #9b6dd0;
+
+  /* Primer overrides */
+  --bgColor-default: #120d1c;
+  --fgColor-default: #ede8f5;
+  --bgColor-muted: #1e1730;
+  --fgColor-muted: #9b6dd0;
+  --control-borderColor-rest: #4a3570;
+  --button-default-bgColor-rest: #1e1730;
+  --button-default-fgColor-rest: #ede8f5;
+  --button-default-borderColor-rest: #4a3570;
+
+  --bgColor-danger-muted: #3d0f0f;
+  --borderColor-danger-muted: #8b2020;
+  --fgColor-danger: #ff9999;
+}
+
+body {
+  margin: 0;
+  background-color: var(--lumen-bg);
+  color: var(--lumen-fg);
+}

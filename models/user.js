@@ -5,6 +5,7 @@ import passwordModel from "models/password.js";
 async function createNewUser(inputValues) {
   await validateUniqueUsername(inputValues.username);
   await validateUniqueEmail(inputValues.email);
+  validatePassword(inputValues.password);
   await hashPasswordInObject(inputValues);
   injectDefaultFeaturesInObject(inputValues);
 
@@ -128,6 +129,20 @@ async function updateUserByUsername(username, userInputValues) {
 }
 
 async function validateUniqueUsername(username) {
+  if (username.length < 3 || username.length > 30) {
+    throw new ValidationError({
+      message: "Username must be between 3 and 30 characters",
+      action: "Choose a username with the correct length",
+    });
+  }
+
+  if (!/^[a-zA-Z0-9]+$/.test(username)) {
+    throw new ValidationError({
+      message: "Username can only contain letters and numbers",
+      action: "Remove any special characters from the username",
+    });
+  }
+
   const result = await database.query({
     text: `
       SELECT username FROM users 
@@ -147,6 +162,13 @@ async function validateUniqueUsername(username) {
 }
 
 async function validateUniqueEmail(email) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new ValidationError({
+      message: "Email format is wrong",
+      action: "Send a valid email",
+    });
+  }
+
   const result = await database.query({
     text: `
       SELECT email FROM users 
@@ -163,6 +185,17 @@ async function validateUniqueEmail(email) {
   }
 
   return result;
+}
+
+function validatePassword(password) {
+  if (password.length < 6 || password.length > 72) {
+    throw new ValidationError({
+      message: "Password must be between 6 and 72 characters",
+      action: "Choose a password with the correct length",
+    });
+  }
+
+  return;
 }
 
 async function hashPasswordInObject(inputValues) {

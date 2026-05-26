@@ -52,4 +52,23 @@ export default defineConfig([
     extends: ["css/recommended"],
   },
   prettier,
+  {
+    files: [
+      "components/**/*.{js,jsx}",
+      "pages/**/*.{js,jsx}",
+      "hooks/**/*.{js,jsx}",
+    ],
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
+  {
+    files: ["**/*.css"],
+    plugins: { css },
+    language: "css/css",
+    extends: ["css/recommended"],
+    rules: {
+      "css/no-invalid-properties": "off",
+    },
+  },
 ]);
