@@ -117,3 +117,4 @@ export default function CadastroPage() {
 
 CadastroPage.title = "Cadastro";
 CadastroPage.isPublic = true;
+CadastroPage.redirectIfAuthenticated = true;
