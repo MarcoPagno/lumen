@@ -6,6 +6,7 @@ import sessionModel from "models/session.js";
 import activationModel from "models/activation.js";
 import database from "infra/database.js";
 import webserver from "infra/webserver.js";
+import systemActivityTypeModel from "models/system_activity_type";
 
 const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
@@ -107,6 +108,25 @@ function extractUUID(text) {
   return match ? match[0] : null;
 }
 
+async function createSystemActivityType(systemActivityTypeObject) {
+  return await systemActivityTypeModel.createNewSystemActivityType({
+    slug:
+      systemActivityTypeObject?.slug ||
+      faker.internet.username().replace(/[_.]/g, ""),
+    name: systemActivityTypeObject?.name || faker.internet.displayName(),
+    category: systemActivityTypeObject?.category || "documento",
+    color: systemActivityTypeObject?.color || faker.color.rgb(),
+    is_default_active:
+      systemActivityTypeObject?.is_default_active || faker.datatype.boolean(),
+    frequency: systemActivityTypeObject?.frequency || "on_publish",
+    expires_after_days:
+      systemActivityTypeObject?.expires_after_days ||
+      faker.number.int({ max: 9 }),
+    source: systemActivityTypeObject?.source || "rss",
+    source_url: systemActivityTypeObject?.source_url || "https://google.com",
+  });
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
@@ -119,6 +139,7 @@ const orchestrator = {
   deleteAllEmails,
   getLastEmail,
   extractUUID,
+  createSystemActivityType,
 };
 
 export default orchestrator;

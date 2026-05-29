@@ -124,6 +124,7 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
         "create:session",
         "read:session",
         "update:user:self",
+        "read:system_activity_type",
       ]);
     });
 

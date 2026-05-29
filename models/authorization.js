@@ -22,6 +22,11 @@ const availableFeatures = [
   //STATUS
   "read:status",
   "read:status:all",
+
+  //SYSTEM_ACTIVITY_TYPE
+  "read:system_activity_type",
+  "create:system_activity_type",
+  "update:system_activity_type",
 ];
 
 function can(user, feature) {
@@ -103,15 +108,6 @@ function filterOutput(user, feature, resource) {
       };
     });
   }
-  if (feature === "create:migration") {
-    return resource.map((migration) => {
-      return {
-        path: migration.path,
-        name: migration.name,
-        timestamp: migration.timestamp,
-      };
-    });
-  }
 
   if (feature === "read:status") {
     const output = {
@@ -130,6 +126,23 @@ function filterOutput(user, feature, resource) {
     }
 
     return output;
+  }
+
+  if (feature === "read:system_activity_type") {
+    const format = (activityType) => ({
+      id: activityType.id,
+      slug: activityType.slug,
+      name: activityType.name,
+      category: activityType.category,
+      color: activityType.color,
+      is_default_active: activityType.is_default_active,
+      frequency: activityType.frequency,
+      expires_after_days: activityType.expires_after_days,
+      source: activityType.source,
+      source_url: activityType.source_url,
+    });
+
+    return Array.isArray(resource) ? resource.map(format) : format(resource);
   }
 }
 

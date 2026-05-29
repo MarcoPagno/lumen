@@ -80,6 +80,7 @@ describe("Use case: Registration Flow (successful path)", () => {
       "create:session",
       "read:session",
       "update:user:self",
+      "read:system_activity_type",
     ]);
   });
 
@@ -138,6 +139,7 @@ describe("Use case: Registration Flow (successful path)", () => {
       "create:session",
       "read:session",
       "update:user:self",
+      "read:system_activity_type",
     ]);
   });
 

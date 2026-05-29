@@ -60,7 +60,7 @@ describe("DELETE /api/v1/sessions", () => {
       });
     });
 
-    test("With valid session", async () => {
+    test("delete session when user has a valid session", async () => {
       const { session, user } =
         await orchestrator.createUserActivateAndReturnSession();
 
