@@ -62,7 +62,7 @@ async function findById(activityId) {
 
   if (result.rowCount === 0) {
     throw new NotFoundError({
-      message: "System_activity_type not found",
+      message: "system_activity_type not found",
       action: "Verify the provided ID and try again",
       status_code: 404,
     });
@@ -214,6 +214,7 @@ const systemActivityTypeModel = {
   createNewSystemActivityType,
   updateById,
   findBySlug,
+  findById,
 };
 
 export default systemActivityTypeModel;

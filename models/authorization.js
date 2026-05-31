@@ -27,6 +27,11 @@ const availableFeatures = [
   "read:system_activity_type",
   "create:system_activity_type",
   "update:system_activity_type",
+
+  //SYSTEM_ACTIVITY_ITEM
+  "read:system_activity_item",
+  "create:system_activity_item",
+  "update:system_activity_item",
 ];
 
 function can(user, feature) {
@@ -143,6 +148,19 @@ function filterOutput(user, feature, resource) {
     });
 
     return Array.isArray(resource) ? resource.map(format) : format(resource);
+  }
+
+  if (feature === "read:system_activity_item") {
+    return {
+      id: resource.id,
+      system_activity_type_id: resource.system_activity_type_id,
+      title: resource.title,
+      subtitle: resource.subtitle,
+      url: resource.url,
+      published_at: resource.published_at,
+      created_at: resource.created_at,
+      updated_at: resource.updated_at,
+    };
   }
 }
 

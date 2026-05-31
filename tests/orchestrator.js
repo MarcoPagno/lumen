@@ -7,6 +7,7 @@ import activationModel from "models/activation.js";
 import database from "infra/database.js";
 import webserver from "infra/webserver.js";
 import systemActivityTypeModel from "models/system_activity_type";
+import systemActivityItemModel from "models/system_activity_item";
 
 const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
@@ -127,6 +128,18 @@ async function createSystemActivityType(systemActivityTypeObject) {
   });
 }
 
+async function createSystemActivityItem(systemActivityItemObject) {
+  return await systemActivityItemModel.createNewSystemActivityItem({
+    system_activity_type_id: systemActivityItemObject?.system_activity_type_id,
+    title:
+      systemActivityItemObject?.title || faker.lorem.word({ min: 4, max: 300 }),
+    subtitle: systemActivityItemObject?.subtitle || faker.lorem.text(),
+    url: systemActivityItemObject?.url || "https://google.com",
+    published_at:
+      systemActivityItemObject?.published_at || faker.date.recent({ days: 2 }),
+  });
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
@@ -140,6 +153,7 @@ const orchestrator = {
   getLastEmail,
   extractUUID,
   createSystemActivityType,
+  createSystemActivityItem,
 };
 
 export default orchestrator;
