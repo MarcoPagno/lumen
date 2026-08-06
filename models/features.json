@@ -1,0 +1,25 @@
+[
+  "create:user",
+  "read:user",
+  "read:user:self",
+  "update:user:self",
+  "update:user:others",
+
+  "create:session",
+  "read:session",
+
+  "read:activation_token",
+
+  "create:migration",
+  "read:migration",
+
+  "read:status",
+  "read:status:all",
+
+  "create:topic",
+  "read:topic:self",
+
+  "create:review",
+  "read:queue:self",
+  "read:review_session:self"
+]

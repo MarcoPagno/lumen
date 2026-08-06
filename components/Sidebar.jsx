@@ -18,6 +18,7 @@ const links = [
   },
   { href: "/falar-com-deus", label: "Falar com Deus" },
   { href: "/status", label: "Status", feature: "read:status:all" },
+  { href: "/migrations", label: "Migrations", feature: "read:migration" },
 ];
 
 export default function Sidebar({ isOpen, onClose, isDark, onToggleDark }) {

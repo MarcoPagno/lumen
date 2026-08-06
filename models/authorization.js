@@ -1,37 +1,5 @@
 import { ForbiddenError, InternalServerError } from "infra/errors";
-
-const availableFeatures = [
-  //USER
-  "create:user",
-  "read:user",
-  "read:user:self",
-  "update:user:self",
-  "update:user:others",
-
-  //SESSION
-  "create:session",
-  "read:session",
-
-  //ACTIVATION_TOKEN
-  "read:activation_token",
-
-  //MIGRATION
-  "create:migration",
-  "read:migration",
-
-  //STATUS
-  "read:status",
-  "read:status:all",
-
-  //TOPIC
-  "create:topic",
-  "read:topic:self",
-
-  //REVIEW
-  "create:review",
-  "read:queue:self",
-  "read:review_session:self",
-];
+import availableFeatures from "models/features.json";
 
 function can(user, feature) {
   validateUser(user);
