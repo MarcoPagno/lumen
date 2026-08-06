@@ -1,28 +1,5 @@
 import { ForbiddenError, InternalServerError } from "infra/errors";
-
-const availableFeatures = [
-  //USER
-  "create:user",
-  "read:user",
-  "read:user:self",
-  "update:user:self",
-  "update:user:others",
-
-  //SESSION
-  "create:session",
-  "read:session",
-
-  //ACTIVATION_TOKEN
-  "read:activation_token",
-
-  //MIGRATION
-  "create:migration",
-  "read:migration",
-
-  //STATUS
-  "read:status",
-  "read:status:all",
-];
+import availableFeatures from "models/features.json";
 
 function can(user, feature) {
   validateUser(user);
@@ -130,6 +107,80 @@ function filterOutput(user, feature, resource) {
     }
 
     return output;
+  }
+
+  if (feature === "create:topic" || feature === "read:topic:self") {
+    if (Array.isArray(resource)) {
+      return resource.map((topic) => filterOutput(user, feature, topic));
+    }
+
+    if (user.id === resource.user_id) {
+      return {
+        id: resource.id,
+        title: resource.title,
+        source: resource.source,
+        studied_at: resource.studied_at,
+        status: resource.status,
+        created_at: resource.created_at,
+        updated_at: resource.updated_at,
+      };
+    }
+    throw new ForbiddenError({
+      message: "You are not allowed to read another user's topic",
+      action: "Make sure you are accessing your own topic",
+    });
+  }
+
+  if (feature === "read:queue:self") {
+    return {
+      queue: resource.queue.map((item) => ({
+        review_id: item.review_id,
+        topic_id: item.topic_id,
+        type: item.type,
+        scheduled_date: item.scheduled_date,
+        title: item.title,
+      })),
+      fundamental_active_count: resource.fundamental_active_count,
+    };
+  }
+
+  if (feature === "read:review_session:self") {
+    return {
+      topic_id: resource.topic_id,
+      title: resource.title,
+      type: resource.type,
+      angle: resource.angle,
+    };
+  }
+
+  if (feature === "create:review") {
+    if (user.id !== resource.topic.user_id) {
+      throw new ForbiddenError({
+        message: "You are not allowed to complete another user's review",
+        action: "Make sure you are accessing your own topic",
+      });
+    }
+
+    return {
+      topic: {
+        id: resource.topic.id,
+        title: resource.topic.title,
+        source: resource.topic.source,
+        studied_at: resource.topic.studied_at,
+        status: resource.topic.status,
+        created_at: resource.topic.created_at,
+        updated_at: resource.topic.updated_at,
+      },
+      reviews: resource.reviews.map((review) => ({
+        id: review.id,
+        type: review.type,
+        scheduled_date: review.scheduled_date,
+        completed_at: review.completed_at,
+        content: review.content,
+        angle: review.angle,
+        promoted: review.promoted,
+      })),
+    };
   }
 }
 

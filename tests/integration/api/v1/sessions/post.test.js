@@ -100,6 +100,11 @@ describe("POST /api/v1/sessions", () => {
         "create:session",
         "read:session",
         "update:user:self",
+        "create:topic",
+        "read:topic:self",
+        "create:review",
+        "read:queue:self",
+        "read:review_session:self",
       ]);
 
       const response = await fetch(`${webserver.origin}/api/v1/sessions`, {

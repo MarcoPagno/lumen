@@ -80,6 +80,11 @@ describe("Use case: Registration Flow (successful path)", () => {
       "create:session",
       "read:session",
       "update:user:self",
+      "create:topic",
+      "read:topic:self",
+      "create:review",
+      "read:queue:self",
+      "read:review_session:self",
     ]);
   });
 
@@ -138,6 +143,11 @@ describe("Use case: Registration Flow (successful path)", () => {
       "create:session",
       "read:session",
       "update:user:self",
+      "create:topic",
+      "read:topic:self",
+      "create:review",
+      "read:queue:self",
+      "read:review_session:self",
     ]);
   });
 

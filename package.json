@@ -4,7 +4,8 @@
   "description": "Implementation of Lumen website",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run services:up && npm run services:wait:database && npm run migrations:up && next dev",
+    "dev": "npm run services:up && npm run services:wait:database && npm run migrations:up && npm run seed; next dev",
+    "seed": "node infra/scripts/seed.js",
     "test": "npm run lint:prettier:check && npm run lint:eslint:check  && npm run services:up && concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand\"",
     "posttest": "npm run services:stop",
     "test:watch": "jest --watchAll --runInBand --verbose",
