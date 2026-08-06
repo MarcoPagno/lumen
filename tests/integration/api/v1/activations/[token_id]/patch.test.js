@@ -124,6 +124,11 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
         "create:session",
         "read:session",
         "update:user:self",
+        "create:topic",
+        "read:topic:self",
+        "create:review",
+        "read:queue:self",
+        "read:review_session:self",
       ]);
     });
 

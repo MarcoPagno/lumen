@@ -10,6 +10,12 @@ import { useRouter } from "next/router.js";
 import { useUser } from "hooks/useUser.js";
 
 const links = [
+  { href: "/", label: "Fila de hoje", feature: "read:queue:self" },
+  {
+    href: "/temas/novo",
+    label: "Estudar tema novo",
+    feature: "create:topic",
+  },
   { href: "/falar-com-deus", label: "Falar com Deus" },
   { href: "/status", label: "Status", feature: "read:status:all" },
 ];
