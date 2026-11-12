@@ -1,6 +1,7 @@
 import orchestrator from "tests/orchestrator.js";
 import webserver from "infra/webserver.js";
 import reviewModel from "models/review.js";
+import date from "infra/date.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -38,7 +39,7 @@ describe("POST /api/v1/topics/[topic_id]/reviews", () => {
       const reviews = await orchestrator.findReviewsByTopic(topic.id);
       const daily = reviews.find((r) => r.type === "daily");
       const weekly = reviews.find((r) => r.type === "weekly");
-      const today = new Date().toISOString().slice(0, 10);
+      const today = date.getTodayDateOnly();
 
       await markDue(daily.id, today);
       await markDue(weekly.id, today);
@@ -85,7 +86,7 @@ describe("POST /api/v1/topics/[topic_id]/reviews", () => {
       });
       const reviews = await orchestrator.findReviewsByTopic(topic.id);
       const daily = reviews.find((r) => r.type === "daily");
-      await markDue(daily.id, new Date().toISOString().slice(0, 10));
+      await markDue(daily.id, date.getTodayDateOnly());
 
       const response = await fetch(
         `${webserver.origin}/api/v1/topics/${topic.id}/reviews`,
@@ -135,7 +136,7 @@ describe("PATCH /api/v1/topics/[topic_id]/reviews (fundamental decision)", () =>
     });
     const reviews = await orchestrator.findReviewsByTopic(topic.id);
     const monthly = reviews.find((r) => r.type === "monthly");
-    const today = new Date().toISOString().slice(0, 10);
+    const today = date.getTodayDateOnly();
     await markDue(monthly.id, today);
 
     const completeResponse = await fetch(
@@ -197,7 +198,7 @@ describe("PATCH /api/v1/topics/[topic_id]/reviews (fundamental decision)", () =>
     });
     const reviews = await orchestrator.findReviewsByTopic(topic.id);
     const monthly = reviews.find((r) => r.type === "monthly");
-    await markDue(monthly.id, new Date().toISOString().slice(0, 10));
+    await markDue(monthly.id, date.getTodayDateOnly());
 
     await fetch(`${webserver.origin}/api/v1/topics/${topic.id}/reviews`, {
       method: "POST",
@@ -237,7 +238,7 @@ describe("PATCH /api/v1/topics/[topic_id]/reviews (fundamental decision)", () =>
     });
     const reviews = await orchestrator.findReviewsByTopic(topic.id);
     const monthly = reviews.find((r) => r.type === "monthly");
-    await markDue(monthly.id, new Date().toISOString().slice(0, 10));
+    await markDue(monthly.id, date.getTodayDateOnly());
 
     await fetch(`${webserver.origin}/api/v1/topics/${topic.id}/reviews`, {
       method: "POST",

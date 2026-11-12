@@ -1,6 +1,7 @@
 import database from "infra/database.js";
 import { ValidationError, NotFoundError } from "infra/errors.js";
 import topicModel from "models/topic.js";
+import localDate from "infra/date.js";
 
 const TYPES = {
   INITIAL: "initial_study",
@@ -126,7 +127,7 @@ async function insertReviews(topicId, rows) {
 }
 
 async function getDueQueueForUser(userId) {
-  const today = toDateOnlyString(new Date());
+  const today = localDate.getTodayDateOnly();
 
   const result = await database.query({
     text: `
@@ -167,7 +168,7 @@ async function getDueQueueForUser(userId) {
 }
 
 async function findPendingForTopic(topicId) {
-  const today = toDateOnlyString(new Date());
+  const today = localDate.getTodayDateOnly();
 
   const result = await database.query({
     text: `

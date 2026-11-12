@@ -98,7 +98,12 @@ async function seedDevelopmentDemo() {
 }
 
 async function seedDemoTopic(userId) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: process.env.APP_TIMEZONE || "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 
   const topicResult = await db.query({
     text: `

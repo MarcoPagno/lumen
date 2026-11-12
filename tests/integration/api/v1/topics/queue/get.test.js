@@ -1,6 +1,7 @@
 import orchestrator from "tests/orchestrator.js";
 import webserver from "infra/webserver.js";
 import reviewModel from "models/review.js";
+import date from "infra/date.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -48,7 +49,7 @@ describe("GET /api/v1/topics/queue", () => {
       const daily = reviews.find((r) => r.type === "daily");
       const weekly = reviews.find((r) => r.type === "weekly");
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = date.getTodayDateOnly();
       const yesterday = reviewModel.addDays(today, -1);
 
       // Simulate both a daily and the weekly review being overdue on the
@@ -107,7 +108,7 @@ describe("GET /api/v1/topics/queue", () => {
       const dailyA = reviewsA.find((r) => r.type === "daily");
       await orchestrator.setReviewScheduledDate(
         dailyA.id,
-        new Date().toISOString().slice(0, 10),
+        date.getTodayDateOnly(),
       );
 
       const response = await fetch(`${webserver.origin}/api/v1/topics/queue`, {
