@@ -182,6 +182,101 @@ function filterOutput(user, feature, resource) {
       })),
     };
   }
+
+  if (feature === "read:reading") {
+    return {
+      id: resource.id,
+      title: resource.title,
+      collection: resource.collection,
+      url: resource.url,
+      source: resource.source,
+      mode: resource.mode,
+      content: resource.content,
+      excerpt: resource.excerpt,
+      word_count: resource.word_count,
+      reading_minutes: resource.reading_minutes,
+      kind: resource.kind,
+      area: resource.area,
+      tone: resource.tone,
+      themes: resource.themes,
+      year: resource.year,
+      part_number: resource.part_number,
+      part_total: resource.part_total,
+      reason: resource.reason ?? null,
+      author: {
+        name: resource.author_name,
+        slug: resource.author_slug,
+        bio: resource.author_bio,
+        image_url: resource.author_image_url,
+        wikipedia_url: resource.author_wikipedia_url,
+        birth_year: resource.author_birth_year,
+        death_year: resource.author_death_year,
+      },
+    };
+  }
+
+  if (feature === "create:reading_log" || feature === "read:reading_log:self") {
+    if (Array.isArray(resource)) {
+      return resource.map((log) => filterOutput(user, feature, log));
+    }
+
+    if (user.id !== resource.user_id) {
+      throw new ForbiddenError({
+        message: "You are not allowed to read another user's reading log",
+        action: "Make sure you are accessing your own reading log",
+      });
+    }
+
+    return {
+      id: resource.id,
+      reading_id: resource.reading_id,
+      status: resource.status,
+      reaction: resource.reaction,
+      note: resource.note,
+      title: resource.title,
+      author_name: resource.author_name,
+      kind: resource.kind,
+      area: resource.area,
+      themes: resource.themes,
+      reading_minutes: resource.reading_minutes,
+      part_number: resource.part_number,
+      part_total: resource.part_total,
+      created_at: resource.created_at,
+      updated_at: resource.updated_at,
+    };
+  }
+
+  if (feature === "create:reading_import") {
+    return resource;
+  }
+
+  if (
+    feature === "create:book" ||
+    feature === "read:book:self" ||
+    feature === "update:book:self"
+  ) {
+    if (Array.isArray(resource)) {
+      return resource.map((book) => filterOutput(user, feature, book));
+    }
+
+    if (user.id !== resource.user_id) {
+      throw new ForbiddenError({
+        message: "You are not allowed to read another user's book",
+        action: "Make sure you are accessing your own book",
+      });
+    }
+
+    return {
+      id: resource.id,
+      title: resource.title,
+      author_name: resource.author_name,
+      themes: resource.themes,
+      subjects: resource.subjects,
+      status: resource.status,
+      created_at: resource.created_at,
+      updated_at: resource.updated_at,
+    };
+  }
 }
 
 function validateUser(user) {

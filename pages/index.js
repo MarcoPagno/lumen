@@ -1,6 +1,8 @@
 import Link from "next/link";
 import useSWR from "swr";
+import { BookOpen, Sun } from "lucide-react";
 import { Button } from "src/components/ui/button";
+import { ReadingMetaBadges } from "components/ReadingBadges.jsx";
 import { useUser } from "hooks/useUser.js";
 
 const TYPE_LABELS = {
@@ -13,31 +15,83 @@ const TYPE_LABELS = {
 async function fetchAPI(key) {
   const response = await fetch(key);
   if (!response.ok) {
-    throw new Error("Failed to load daily queue");
+    throw new Error(`Failed to load ${key}`);
   }
   return response.json();
 }
 
 function Home() {
   const { user, isLoading: isUserLoading } = useUser();
+  const canRead = user?.features?.includes("read:reading");
+  const canReview = user?.features?.includes("read:queue:self");
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Fila de hoje</h1>
-        <Button asChild>
-          <Link href="/temas/novo">Estudar tema novo</Link>
-        </Button>
-      </div>
+      <h1 className="text-2xl font-semibold">Hoje</h1>
+
+      {canRead && <QuickReadingCard />}
+
+      <Link
+        href="/falar-com-deus"
+        className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 transition-colors hover:bg-muted"
+      >
+        <Sun className="size-5 shrink-0" />
+        <div>
+          <p className="font-medium">Meditação do dia</p>
+          <p className="text-sm text-muted-foreground">Falar com Deus</p>
+        </div>
+      </Link>
 
       {!isUserLoading && !user && (
         <p className="text-muted-foreground">
-          Entre na sua conta para ver sua fila de revisões de hoje.
+          Entre na sua conta para ver suas leituras e revisões de hoje.
         </p>
       )}
 
-      {user && <DailyQueue />}
+      {canReview && (
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-lg font-semibold">Revisões</h2>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/temas/novo">Estudar tema novo</Link>
+            </Button>
+          </div>
+          <DailyQueue />
+        </section>
+      )}
     </div>
+  );
+}
+
+function QuickReadingCard() {
+  const { data, error, isLoading } = useSWR("/api/v1/readings/next", fetchAPI, {
+    revalidateOnFocus: false,
+  });
+
+  if (isLoading || error || !data) {
+    return null;
+  }
+
+  return (
+    <Link
+      href="/leituras"
+      className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-muted"
+    >
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <BookOpen className="size-4" />
+        Leitura rápida
+      </div>
+      <div>
+        <p className="font-serif text-xl font-semibold leading-tight">
+          {data.title}
+        </p>
+        <p className="text-sm text-muted-foreground">{data.author.name}</p>
+      </div>
+      <ReadingMetaBadges reading={data} />
+      {data.reason && (
+        <p className="text-sm text-muted-foreground">{data.reason}</p>
+      )}
+    </Link>
   );
 }
 
@@ -83,7 +137,7 @@ function DailyQueue() {
   );
 }
 
-Home.title = "Início";
+Home.title = "Hoje";
 Home.isPublic = true;
 
 export default Home;

@@ -21,5 +21,14 @@
 
   "create:review",
   "read:queue:self",
-  "read:review_session:self"
+  "read:review_session:self",
+
+  "read:reading",
+  "create:reading_log",
+  "read:reading_log:self",
+  "create:reading_import",
+
+  "create:book",
+  "read:book:self",
+  "update:book:self"
 ]

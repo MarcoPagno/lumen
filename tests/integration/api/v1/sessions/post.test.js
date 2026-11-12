@@ -105,6 +105,12 @@ describe("POST /api/v1/sessions", () => {
         "create:review",
         "read:queue:self",
         "read:review_session:self",
+        "read:reading",
+        "create:reading_log",
+        "read:reading_log:self",
+        "create:book",
+        "read:book:self",
+        "update:book:self",
       ]);
 
       const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
