@@ -2,6 +2,7 @@ import vatican from "infra/sources/vatican.js";
 import permanencia from "infra/sources/permanencia.js";
 import webpage from "infra/sources/webpage.js";
 import escritas from "infra/sources/escritas.js";
+import hablarcondios from "infra/sources/hablarcondios.js";
 import readingText from "models/reading-text.js";
 
 const LONG_PARAGRAPH =
@@ -188,5 +189,28 @@ describe("escritas.extractPoem", () => {
   test("detects poems from other authors", () => {
     const poem = escritas.extractPoem(page, "manuel-bandeira");
     expect(poem.isFromAuthor).toBe(false);
+  });
+});
+
+describe("hablarcondios.extractMeditation", () => {
+  test("extracts the title and a sanitized body", () => {
+    const meditation = hablarcondios.extractMeditation(`
+      <article>
+        <header><h1>Meditação diária</h1></header>
+        <figure><img src="x.jpg" onerror="alert(1)"></figure>
+        <p onclick="alert(1)">Senhor, ensina-nos a <i>rezar</i>.</p>
+        <script>alert("xss")</script>
+        <iframe src="https://evil.example"></iframe>
+        <p><a href="javascript:alert(1)">Leia mais</a></p>
+      </article>`);
+
+    expect(meditation.title).toBe("Meditação diária");
+    expect(meditation.html).toBe(
+      "<p>Senhor, ensina-nos a <em>rezar</em>.</p><p>Leia mais</p>",
+    );
+  });
+
+  test("returns null when the page has no article", () => {
+    expect(hablarcondios.extractMeditation("<div>Erro</div>")).toBeNull();
   });
 });

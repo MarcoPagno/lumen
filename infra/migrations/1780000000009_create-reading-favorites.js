@@ -21,9 +21,13 @@ exports.up = (pgm) => {
     },
   });
 
-  pgm.addConstraint("reading_favorites", "reading_favorites_user_reading_unique", {
-    unique: ["user_id", "reading_id"],
-  });
+  pgm.addConstraint(
+    "reading_favorites",
+    "reading_favorites_user_reading_unique",
+    {
+      unique: ["user_id", "reading_id"],
+    },
+  );
 
   pgm.sql(`
     UPDATE users

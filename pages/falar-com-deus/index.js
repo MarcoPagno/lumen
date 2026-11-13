@@ -1,42 +1,37 @@
-import { parse } from "node-html-parser";
-
-const SOURCE_URL = "https://hablarcondios.org/pt/meditacao-diaria/";
+import hablarcondios from "infra/sources/hablarcondios.js";
 
 export async function getStaticProps() {
   try {
-    const res = await fetch(SOURCE_URL);
+    const res = await fetch(hablarcondios.MEDITATION_URL);
     if (!res.ok) {
       throw new Error(`Unexpected status ${res.status}`);
     }
 
-    const root = parse(await res.text());
-    const article = root.querySelector("article");
-    if (!article) {
-      throw new Error("No <article> found in page");
+    const meditation = hablarcondios.extractMeditation(await res.text());
+    if (!meditation) {
+      throw new Error("No meditation found in page");
     }
 
-    article.querySelector("figure")?.remove();
-
     return {
-      props: { article: article.innerHTML },
+      props: { meditation, sourceUrl: hablarcondios.MEDITATION_URL },
       revalidate: 3600,
     };
   } catch (error) {
     console.error("Falha ao carregar a meditação diária:", error);
     return {
-      props: { article: null },
+      props: { meditation: null, sourceUrl: hablarcondios.MEDITATION_URL },
       revalidate: 300,
     };
   }
 }
 
-export default function FalarComDeusPage({ article }) {
-  if (!article) {
+export default function FalarComDeusPage({ meditation, sourceUrl }) {
+  if (!meditation) {
     return (
       <p className="text-muted-foreground">
         Não foi possível carregar a meditação de hoje.{" "}
         <a
-          href={SOURCE_URL}
+          href={sourceUrl}
           target="_blank"
           rel="noreferrer"
           className="underline"
@@ -49,10 +44,10 @@ export default function FalarComDeusPage({ article }) {
   }
 
   return (
-    <article
-      className="prose dark:prose-invert max-w-none"
-      dangerouslySetInnerHTML={{ __html: article }}
-    />
+    <article className="prose dark:prose-invert max-w-none">
+      {meditation.title && <h1>{meditation.title}</h1>}
+      <div dangerouslySetInnerHTML={{ __html: meditation.html }} />
+    </article>
   );
 }
 
