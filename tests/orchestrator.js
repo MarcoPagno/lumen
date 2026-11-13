@@ -132,23 +132,27 @@ async function createAuthor(authorObject) {
 }
 
 async function createReading(author, readingObject) {
-  return await readingModel.insertProcessed(author.id, "wikisource", {
-    external_id: readingObject?.external_id || faker.string.uuid(),
-    title: readingObject?.title || faker.lorem.words(3),
-    url: readingObject?.url || "https://pt.wikisource.org/wiki/Teste",
-    status: readingObject?.status || "ready",
-    content: readingObject?.content ?? "<p>Conteúdo da leitura.</p>",
-    excerpt: "Conteúdo da leitura.",
-    word_count: 200,
-    reading_minutes: readingObject?.reading_minutes ?? 1,
-    kind: readingObject?.kind || "conto",
-    area: readingObject?.area || "literatura",
-    tone: readingObject?.tone || "leve",
-    themes: readingObject?.themes || [],
-    series_id: readingObject?.series_id ?? null,
-    part_number: readingObject?.part_number ?? null,
-    part_total: readingObject?.part_total ?? null,
-  });
+  return await readingModel.insertProcessed(
+    author.id,
+    readingObject?.source || "wikisource",
+    {
+      external_id: readingObject?.external_id || faker.string.uuid(),
+      title: readingObject?.title || faker.lorem.words(3),
+      url: readingObject?.url || "https://pt.wikisource.org/wiki/Teste",
+      status: readingObject?.status || "ready",
+      content: readingObject?.content ?? "<p>Conteúdo da leitura.</p>",
+      excerpt: "Conteúdo da leitura.",
+      word_count: 200,
+      reading_minutes: readingObject?.reading_minutes ?? 1,
+      kind: readingObject?.kind || "conto",
+      area: readingObject?.area || "literatura",
+      tone: readingObject?.tone || "leve",
+      themes: readingObject?.themes || [],
+      series_id: readingObject?.series_id ?? null,
+      part_number: readingObject?.part_number ?? null,
+      part_total: readingObject?.part_total ?? null,
+    },
+  );
 }
 
 async function deleteAllReadings() {

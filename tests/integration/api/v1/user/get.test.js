@@ -115,6 +115,7 @@ describe("GET /api/v1/user", () => {
           "read:queue:self",
           "read:review_session:self",
           "read:reading",
+          "create:reading",
           "create:reading_log",
           "read:reading_log:self",
           "create:book",

@@ -202,5 +202,212 @@
     "area": "filosofia",
     "tone": "denso",
     "kind": "artigo"
+  },
+  {
+    "slug": "catecismo-da-igreja-catolica",
+    "name": "Catecismo da Igreja Católica",
+    "wikipedia": "Catecismo_da_Igreja_Católica",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "catechism": true
+  },
+  {
+    "slug": "leao-xiii",
+    "name": "Papa Leão XIII",
+    "birth_year": 1810,
+    "death_year": 1903,
+    "wikipedia": "Papa_Leão_XIII",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/leo-xiii/pt/encyclicals.index.html"
+    ]
+  },
+  {
+    "slug": "pio-x",
+    "name": "Papa São Pio X",
+    "birth_year": 1835,
+    "death_year": 1914,
+    "wikipedia": "Papa_Pio_X",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/pius-x/pt/encyclicals.index.html"
+    ]
+  },
+  {
+    "slug": "pio-xi",
+    "name": "Papa Pio XI",
+    "birth_year": 1857,
+    "death_year": 1939,
+    "wikipedia": "Papa_Pio_XI",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/pius-xi/pt/encyclicals.index.html"
+    ]
+  },
+  {
+    "slug": "pio-xii",
+    "name": "Papa Pio XII",
+    "birth_year": 1876,
+    "death_year": 1958,
+    "wikipedia": "Papa_Pio_XII",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/pius-xii/pt/encyclicals.index.html"
+    ]
+  },
+  {
+    "slug": "paulo-vi",
+    "name": "Papa São Paulo VI",
+    "birth_year": 1897,
+    "death_year": 1978,
+    "wikipedia": "Papa_Paulo_VI",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/paul-vi/pt/encyclicals.index.html"
+    ]
+  },
+  {
+    "slug": "joao-paulo-ii",
+    "name": "Papa São João Paulo II",
+    "birth_year": 1920,
+    "death_year": 2005,
+    "wikipedia": "Papa_João_Paulo_II",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/john-paul-ii/pt/encyclicals.index.html",
+      "https://www.vatican.va/content/john-paul-ii/pt/apost_exhortations.index.html"
+    ]
+  },
+  {
+    "slug": "bento-xvi",
+    "name": "Papa Bento XVI",
+    "birth_year": 1927,
+    "death_year": 2022,
+    "wikipedia": "Papa_Bento_XVI",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/benedict-xvi/pt/encyclicals.index.html",
+      "https://www.vatican.va/content/benedict-xvi/pt/apost_exhortations.index.html"
+    ]
+  },
+  {
+    "slug": "concilio-vaticano-ii",
+    "name": "Concílio Vaticano II",
+    "wikipedia": "Concílio_Vaticano_II",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "denso",
+    "documents": [
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_const_19641121_lumen-gentium_po.html",
+        "title": "Lumen Gentium: constituição dogmática sobre a Igreja",
+        "year": 1964
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_const_19651118_dei-verbum_po.html",
+        "title": "Dei Verbum: constituição dogmática sobre a Revelação divina",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_const_19631204_sacrosanctum-concilium_po.html",
+        "title": "Sacrosanctum Concilium: constituição sobre a sagrada liturgia",
+        "year": 1963
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_const_19651207_gaudium-et-spes_po.html",
+        "title": "Gaudium et Spes: constituição pastoral sobre a Igreja no mundo actual",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decl_19651028_gravissimum-educationis_po.html",
+        "title": "Gravissimum Educationis: declaração sobre a educação cristã",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decl_19651207_dignitatis-humanae_po.html",
+        "title": "Dignitatis Humanae: declaração sobre a liberdade religiosa",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decl_19651028_nostra-aetate_po.html",
+        "title": "Nostra Aetate: declaração sobre a Igreja e as religiões não-cristãs",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651207_presbyterorum-ordinis_po.html",
+        "title": "Presbyterorum Ordinis: decreto sobre o ministério e a vida dos sacerdotes",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651028_perfectae-caritatis_po.html",
+        "title": "Perfectae Caritatis: decreto sobre a vida religiosa",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651118_apostolicam-actuositatem_po.html",
+        "title": "Apostolicam Actuositatem: decreto sobre o apostolado dos leigos",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19641121_unitatis-redintegratio_po.html",
+        "title": "Unitatis Redintegratio: decreto sobre o ecumenismo",
+        "year": 1964
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651207_ad-gentes_po.html",
+        "title": "Ad Gentes: decreto sobre a actividade missionária da Igreja",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651028_christus-dominus_po.html",
+        "title": "Christus Dominus: decreto sobre o múnus pastoral dos bispos",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651028_optatam-totius_po.html",
+        "title": "Optatam Totius: decreto sobre a formação sacerdotal",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19631204_inter-mirifica_po.html",
+        "title": "Inter Mirifica: decreto sobre os meios de comunicação social",
+        "year": 1963
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19641121_orientalium-ecclesiarum_po.html",
+        "title": "Orientalium Ecclesiarum: decreto sobre as Igrejas orientais católicas",
+        "year": 1964
+      }
+    ]
+  },
+  {
+    "slug": "gustavo-corcao",
+    "name": "Gustavo Corção",
+    "birth_year": 1896,
+    "death_year": 1978,
+    "wikipedia": "Gustavo_Corção",
+    "source": "permanencia",
+    "area": "teologia",
+    "tone": "inspirador",
+    "kind": "artigo",
+    "lists": [
+      "https://permanencia.org.br/index.php/paginas/listar_artigos_corcao/45"
+    ],
+    "article_pattern": "detalhar_gustavo_corcao/\\d+"
   }
 ]

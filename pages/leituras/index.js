@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button } from "src/components/ui/button";
 import { Textarea } from "src/components/ui/textarea";
@@ -11,6 +12,7 @@ import { parseApiError } from "utils/api.js";
 import { SOURCE_LABELS, getAuthorYears } from "utils/readings.js";
 
 export default function LeiturasPage() {
+  const router = useRouter();
   const [phase, setPhase] = useState("loading");
   const [reading, setReading] = useState(null);
   const [reaction, setReaction] = useState(null);
@@ -18,11 +20,28 @@ export default function LeiturasPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const loadNext = useCallback(async () => {
+  const loadReading = useCallback(async (readingId, reason = null) => {
+    const readingResponse = await readingService.getReading(readingId);
+    if (!readingResponse.ok) {
+      setErrorMessage(await parseApiError(readingResponse));
+      setPhase("error");
+      return;
+    }
+
+    setReading({ ...(await readingResponse.json()), reason });
+    setPhase("reading");
+    window.scrollTo({ top: 0 });
+  }, []);
+
+  const resetState = useCallback(() => {
     setPhase("loading");
     setReaction(null);
     setNote("");
     setErrorMessage(null);
+  }, []);
+
+  const loadNext = useCallback(async () => {
+    resetState();
 
     const nextResponse = await readingService.getNext();
     if (nextResponse.status === 404) {
@@ -36,21 +55,20 @@ export default function LeiturasPage() {
     }
 
     const next = await nextResponse.json();
-    const readingResponse = await readingService.getReading(next.id);
-    if (!readingResponse.ok) {
-      setErrorMessage(await parseApiError(readingResponse));
-      setPhase("error");
+    await loadReading(next.id, next.reason);
+  }, [loadReading, resetState]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    if (router.query.id) {
+      resetState();
+      loadReading(router.query.id);
       return;
     }
 
-    setReading({ ...(await readingResponse.json()), reason: next.reason });
-    setPhase("reading");
-    window.scrollTo({ top: 0 });
-  }, []);
-
-  useEffect(() => {
     loadNext();
-  }, [loadNext]);
+  }, [router.isReady, router.query.id, loadNext, loadReading, resetState]);
 
   async function handleLog(status) {
     setIsSaving(true);
@@ -62,6 +80,10 @@ export default function LeiturasPage() {
         note: status === "read" ? note : null,
       });
       if (response.ok) {
+        if (router.query.id) {
+          router.replace("/leituras");
+          return;
+        }
         await loadNext();
         return;
       }

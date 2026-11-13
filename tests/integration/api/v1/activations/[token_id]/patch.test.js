@@ -130,6 +130,7 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
         "read:queue:self",
         "read:review_session:self",
         "read:reading",
+        "create:reading",
         "create:reading_log",
         "read:reading_log:self",
         "create:book",

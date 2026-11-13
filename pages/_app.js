@@ -36,6 +36,10 @@ function AppContent({ Component, pageProps }) {
 export default function App({ Component, pageProps }) {
   useEffect(() => {
     document.documentElement.classList.add(poppins.variable, "font-sans");
+
+    if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
+      navigator.serviceWorker.register("/sw.js");
+    }
   }, []);
 
   return (

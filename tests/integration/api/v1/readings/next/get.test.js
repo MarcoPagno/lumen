@@ -157,6 +157,23 @@ describe("GET /api/v1/readings/next", () => {
       expect(responseBody.reason).toBe('Do mesmo autor de "Lições de Abismo"');
     });
 
+    test("prefers readings added by the user", async () => {
+      const { session } =
+        await orchestrator.createUserActivateAndReturnSession();
+      const author = await orchestrator.createAuthor();
+
+      for (let index = 0; index < 5; index++) {
+        await orchestrator.createReading(author);
+      }
+      const added = await orchestrator.createReading(author, {
+        source: "link",
+      });
+
+      const responseBody = await (await getNext(session)).json();
+      expect(responseBody.id).toBe(added.id);
+      expect(responseBody.reason).toBe("Adicionado por você");
+    });
+
     test("only offers the next part of a series after the previous one is read", async () => {
       const { session } =
         await orchestrator.createUserActivateAndReturnSession();

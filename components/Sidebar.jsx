@@ -13,6 +13,11 @@ const links = [
   { href: "/", label: "Hoje" },
   { href: "/leituras", label: "Leitura rápida", feature: "read:reading" },
   {
+    href: "/leituras/adicionar",
+    label: "Adicionar leitura",
+    feature: "create:reading",
+  },
+  {
     href: "/leituras/estou-lendo",
     label: "Estou lendo",
     feature: "read:book:self",

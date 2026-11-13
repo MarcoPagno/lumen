@@ -25,6 +25,10 @@ const ALLOWED_TAGS = {
 
 const BLOCK_TAGS = ["p", "blockquote", "h3", "h4", "ul", "ol"];
 
+const CONTAINER_TAGS = ["div", "section", "article", "center", "td"];
+
+const BLOCK_PATTERN = /<(p|blockquote|h3|h4|ul|ol)>/;
+
 const REMOVED_SELECTORS = [
   "script",
   "style",
@@ -86,7 +90,7 @@ function sanitizeHtml(html) {
     root.querySelectorAll(selector).forEach((node) => node.remove());
   }
 
-  const output = root.childNodes.map(renderNode).join("");
+  const output = wrapLooseContent(root.childNodes.map(renderNode).join(""));
   return output
     .replace(/<p>(\s|<br>)*<\/p>/g, "")
     .replace(/(<br>\s*){3,}/g, "<br><br>")
@@ -105,7 +109,10 @@ function sanitizeHtml(html) {
     const children = node.childNodes.map(renderNode).join("");
 
     if (!tag) {
-      return children;
+      const isTextContainer =
+        CONTAINER_TAGS.includes(node.rawTagName?.toLowerCase()) &&
+        !BLOCK_PATTERN.test(children);
+      return isTextContainer ? `<p>${children}</p>` : children;
     }
 
     if (tag === "br") {
@@ -114,6 +121,33 @@ function sanitizeHtml(html) {
 
     return `<${tag}>${children}</${tag}>`;
   }
+}
+
+function wrapLooseContent(html) {
+  const root = parse(html);
+  const output = [];
+  let loose = [];
+
+  function flush() {
+    const content = loose.join("").trim();
+    if (content.replace(/<br>/g, "").trim()) {
+      output.push(`<p>${content}</p>`);
+    }
+    loose = [];
+  }
+
+  for (const node of root.childNodes) {
+    const tag = node.rawTagName?.toLowerCase();
+    if (node.nodeType === NodeType.ELEMENT_NODE && BLOCK_TAGS.includes(tag)) {
+      flush();
+      output.push(node.toString());
+    } else {
+      loose.push(node.toString());
+    }
+  }
+  flush();
+
+  return output.join("");
 }
 
 function getLinkDensity(html) {
@@ -253,9 +287,24 @@ function splitIntoParts(html, targetWords = PART_TARGET_WORDS) {
   return parts;
 }
 
+function measure(html) {
+  const text = toPlainText(html);
+  const wordCount = countWords(text);
+  return {
+    html,
+    text,
+    wordCount,
+    readingMinutes: getReadingMinutes(wordCount),
+  };
+}
+
 function prepare(
   rawHtml,
-  { allowSplit = true, maxMinutes = MAX_READING_MINUTES } = {},
+  {
+    allowSplit = true,
+    maxMinutes = MAX_READING_MINUTES,
+    maxParts = MAX_PARTS,
+  } = {},
 ) {
   const linkDensity = getLinkDensity(rawHtml);
   const html = sanitizeHtml(rawHtml);
@@ -284,18 +333,9 @@ function prepare(
     return { rejected: "too_long" };
   }
 
-  const parts = splitIntoParts(html).map((partHtml) => {
-    const partText = toPlainText(partHtml);
-    const partWords = countWords(partText);
-    return {
-      html: partHtml,
-      text: partText,
-      wordCount: partWords,
-      readingMinutes: getReadingMinutes(partWords),
-    };
-  });
+  const parts = splitIntoParts(html).map(measure);
 
-  if (parts.length > MAX_PARTS || parts.length === 1) {
+  if (parts.length > maxParts || parts.length === 1) {
     return { rejected: "too_long" };
   }
 
@@ -315,6 +355,7 @@ const readingText = {
   detectThemes,
   detectKind,
   splitIntoParts,
+  measure,
   prepare,
 };
 

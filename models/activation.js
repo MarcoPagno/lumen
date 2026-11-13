@@ -105,6 +105,7 @@ async function activateUserbyUserId(userId) {
     "read:queue:self",
     "read:review_session:self",
     "read:reading",
+    "create:reading",
     "create:reading_log",
     "read:reading_log:self",
     "create:book",

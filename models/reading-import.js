@@ -2,17 +2,39 @@ import { randomUUID } from "node:crypto";
 import { ValidationError } from "infra/errors.js";
 import wikisource from "infra/sources/wikisource.js";
 import olavo from "infra/sources/olavo.js";
+import vatican from "infra/sources/vatican.js";
+import permanencia from "infra/sources/permanencia.js";
+import webpage from "infra/sources/webpage.js";
 import wikipedia from "infra/sources/wikipedia.js";
 import authorModel from "models/author.js";
 import readingModel from "models/reading.js";
 import readingText from "models/reading-text.js";
 import authorsConfig from "models/reading-authors.json";
+import themes from "models/reading-themes.json";
+
+const DOCUMENT_MAX_PARTS = 40;
 
 const SOURCES = {
   wikisource: {
     name: "Wikisource",
     mode: "stored",
-    importNext: importNextWikisource,
+    batchSize: 8,
+    discover: discoverWikisource,
+    process: processWikisource,
+  },
+  vatican: {
+    name: "vatican.va",
+    mode: "live",
+    batchSize: 4,
+    discover: vatican.discover,
+    process: processVatican,
+  },
+  permanencia: {
+    name: "Permanência",
+    mode: "live",
+    batchSize: 10,
+    discover: permanencia.discover,
+    process: processPermanencia,
   },
   olavo: {
     name: "olavodecarvalho.org",
@@ -21,11 +43,19 @@ const SOURCES = {
   },
 };
 
-const WIKISOURCE_BATCH_SIZE = 8;
+const REJECTION_MESSAGES = {
+  too_short: "The page has too little text to be a reading",
+  index_page: "The page looks like a list of links, not a text",
+  not_portuguese: "The text does not seem to be in Portuguese",
+  too_long: "The text is too long to be split into quick readings",
+};
 
 async function importNext(source) {
   validateSource(source);
-  const result = await SOURCES[source].importNext();
+  const config = SOURCES[source];
+  const result = config.importNext
+    ? await config.importNext()
+    : await importNextFromSource(source);
   const stats = await readingModel.countBySource(source);
   return { source, ...result, stats };
 }
@@ -51,28 +81,26 @@ async function ensureAuthor(authorConfig) {
   const existing = await authorModel.findBySlug(authorConfig.slug);
   if (existing?.bio) return existing;
 
-  const summary = await wikipedia.fetchSummary(authorConfig.wikipedia);
+  const summary = authorConfig.wikipedia
+    ? await wikipedia.fetchSummary(authorConfig.wikipedia)
+    : null;
   return await authorModel.upsert(authorConfig, summary);
 }
 
-async function importNextWikisource() {
-  const configs = authorsConfig.filter(
-    (author) => author.source === "wikisource",
-  );
+async function importNextFromSource(source) {
+  const sourceConfig = SOURCES[source];
+  const configs = authorsConfig.filter((author) => author.source === source);
 
   for (const authorConfig of configs) {
     const author = await ensureAuthor(authorConfig);
     if (author.discovered_at) continue;
 
-    const candidates = await wikisource.discoverAuthorPages(authorConfig);
+    const candidates = await sourceConfig.discover(authorConfig);
     const discovered = await readingModel.insertCandidates(
       author.id,
-      "wikisource",
-      candidates.map((candidate) => ({
-        ...candidate,
-        year: extractYear(candidate.external_id),
-      })),
-      { mode: "stored" },
+      source,
+      candidates,
+      { mode: sourceConfig.mode },
     );
     await authorModel.markDiscovered(author.id);
 
@@ -85,8 +113,8 @@ async function importNextWikisource() {
   }
 
   const batch = await readingModel.findPendingBatch(
-    "wikisource",
-    WIKISOURCE_BATCH_SIZE,
+    source,
+    sourceConfig.batchSize,
   );
 
   let ready = 0;
@@ -96,31 +124,15 @@ async function importNextWikisource() {
     const authorConfig = configs.find(
       (config) => config.slug === pending.author_slug,
     );
-    const page = await wikisource.fetchPage(pending.external_id);
+    const result = await sourceConfig.process(pending, authorConfig);
 
-    if (!page) {
-      await readingModel.markRejected(pending.id, "not_found");
+    if (result.rejected) {
+      await readingModel.markRejected(pending.id, result.rejected);
       rejected++;
       continue;
     }
 
-    const prepared = readingText.prepare(page.html);
-
-    if (prepared.rejected) {
-      await readingModel.markRejected(pending.id, prepared.rejected);
-      rejected++;
-      continue;
-    }
-
-    await saveParts(pending, prepared, {
-      kind:
-        readingText.detectKind(page.categories, page.html) ??
-        authorConfig?.kind ??
-        (wikisource.isChapterTitle(pending.external_id) ? "capítulo" : "texto"),
-      area: authorConfig?.area ?? "literatura",
-      tone: authorConfig?.tone ?? null,
-      themes: readingText.detectThemes(prepared.text),
-    });
+    await saveItems(pending, result, sourceConfig.mode);
     ready++;
   }
 
@@ -129,44 +141,135 @@ async function importNextWikisource() {
     processed: batch.length,
     ready,
     rejected,
-    done: batch.length < WIKISOURCE_BATCH_SIZE,
+    done: batch.length < sourceConfig.batchSize,
   };
 }
 
-async function saveParts(pending, prepared, classification) {
-  const { parts } = prepared;
-  const isSeries = parts.length > 1;
+async function saveItems(pending, result, mode) {
+  const { items, isSeries, classification } = result;
+  const series = isSeries && items.length > 1;
 
-  await readingModel.markReady(pending.id, {
-    ...classification,
-    content: parts[0].html,
-    excerpt: readingText.getExcerpt(parts[0].text),
-    word_count: parts[0].wordCount,
-    reading_minutes: parts[0].readingMinutes,
-    series_id: isSeries ? pending.id : null,
-    part_number: isSeries ? 1 : null,
-    part_total: isSeries ? parts.length : null,
-  });
-
-  for (let index = 1; index < parts.length; index++) {
-    const part = parts[index];
-    await readingModel.insertProcessed(pending.author_id, pending.source, {
+  for (const [index, item] of items.entries()) {
+    const values = {
       ...classification,
-      external_id: `${pending.external_id}#${index + 1}`,
-      title: pending.title,
-      collection: pending.collection,
+      themes: item.themes ?? classification.themes,
+      title: item.title ?? pending.title,
+      collection: item.collection ?? pending.collection,
+      content: mode === "stored" ? item.html : null,
+      excerpt: readingText.getExcerpt(item.text),
+      word_count: item.wordCount,
+      reading_minutes: item.readingMinutes,
+      series_id: series ? pending.id : null,
+      part_number: series ? index + 1 : null,
+      part_total: series ? items.length : null,
+    };
+
+    if (index === 0) {
+      await readingModel.markReady(pending.id, values);
+      continue;
+    }
+
+    const suffix = series ? `#${index + 1}` : `#u${index}`;
+    await readingModel.insertProcessed(pending.author_id, pending.source, {
+      ...values,
+      external_id: `${pending.external_id}${suffix}`,
       url: pending.url,
       year: pending.year,
+      mode,
       status: "ready",
-      content: part.html,
-      excerpt: readingText.getExcerpt(part.text),
-      word_count: part.wordCount,
-      reading_minutes: part.readingMinutes,
-      series_id: pending.id,
-      part_number: index + 1,
-      part_total: parts.length,
     });
   }
+}
+
+async function discoverWikisource(authorConfig) {
+  const candidates = await wikisource.discoverAuthorPages(authorConfig);
+  return candidates.map((candidate) => ({
+    ...candidate,
+    year: extractYear(candidate.external_id),
+  }));
+}
+
+async function processWikisource(pending, authorConfig) {
+  const page = await wikisource.fetchPage(pending.external_id);
+  if (!page) return { rejected: "not_found" };
+
+  const prepared = readingText.prepare(page.html);
+  if (prepared.rejected) return prepared;
+
+  return {
+    items: prepared.parts,
+    isSeries: true,
+    classification: {
+      kind:
+        readingText.detectKind(page.categories, page.html) ??
+        authorConfig?.kind ??
+        (wikisource.isChapterTitle(pending.external_id) ? "capítulo" : "texto"),
+      area: authorConfig?.area ?? "literatura",
+      tone: authorConfig?.tone ?? null,
+      themes: readingText.detectThemes(prepared.text),
+    },
+  };
+}
+
+async function processVatican(pending, authorConfig) {
+  const pageHtml = await vatican.fetchPage(pending.url);
+  const classification = {
+    kind: vatican.getKind(pending.url),
+    area: authorConfig?.area ?? "teologia",
+    tone: authorConfig?.tone ?? "inspirador",
+    themes: [],
+  };
+
+  if (vatican.isCatechismUrl(pending.url)) {
+    const items = vatican.extractCatechismUnits(pageHtml).map((unit) => {
+      const measured = readingText.measure(readingText.sanitizeHtml(unit.html));
+      return {
+        ...measured,
+        title: unit.title,
+        collection: unit.collection,
+        themes: readingText.detectThemes(measured.text),
+      };
+    });
+
+    if (items.length === 0) return { rejected: "too_short" };
+    return { items, isSeries: false, classification };
+  }
+
+  const prepared = readingText.prepare(vatican.extractDocumentHtml(pageHtml), {
+    maxParts: DOCUMENT_MAX_PARTS,
+  });
+  if (prepared.rejected) return prepared;
+
+  return {
+    items: prepared.parts,
+    isSeries: true,
+    classification: {
+      ...classification,
+      themes: readingText.detectThemes(prepared.text),
+    },
+  };
+}
+
+async function processPermanencia(pending, authorConfig) {
+  const article = permanencia.extractArticle(
+    await permanencia.fetchPage(pending.url),
+  );
+  const prepared = readingText.prepare(article.html);
+  if (prepared.rejected) return prepared;
+
+  return {
+    items: prepared.parts.map((part) => ({
+      ...part,
+      title: article.title ?? pending.title,
+    })),
+    isSeries: true,
+    classification: {
+      kind: authorConfig?.kind ?? "artigo",
+      area: authorConfig?.area ?? "teologia",
+      tone: authorConfig?.tone ?? null,
+      themes: readingText.detectThemes(prepared.text),
+    },
+  };
 }
 
 async function importNextOlavo() {
@@ -240,6 +343,95 @@ async function importNextOlavo() {
   };
 }
 
+async function addLink(inputValues) {
+  const url = webpage.validateUrl(inputValues.url);
+
+  let page;
+  try {
+    page = webpage.extractMain(await webpage.fetchPage(url));
+  } catch {
+    throw new ValidationError({
+      message: "Could not access the page",
+      action: "Check if the address is correct and publicly accessible",
+    });
+  }
+
+  const prepared = readingText.prepare(page.html, {
+    maxParts: DOCUMENT_MAX_PARTS,
+  });
+
+  if (prepared.rejected) {
+    throw new ValidationError({
+      message: REJECTION_MESSAGES[prepared.rejected],
+      action: "Try another page with the full text of the reading",
+    });
+  }
+
+  const authorName =
+    inputValues.author_name?.trim() || page.author || new URL(url).hostname;
+  const author = await ensureAuthor({
+    slug: slugify(authorName),
+    name: authorName,
+    wikipedia: inputValues.author_name?.trim()
+      ? authorName.replace(/ /g, "_")
+      : null,
+  });
+
+  const textThemes = readingText.detectThemes(prepared.text);
+  const isSeries = prepared.parts.length > 1;
+  const seriesId = isSeries ? randomUUID() : null;
+  let firstReading;
+
+  for (const [index, part] of prepared.parts.entries()) {
+    const reading = await readingModel.insertProcessed(author.id, "link", {
+      external_id: index === 0 ? url : `${url}#${index + 1}`,
+      title: page.title || authorName,
+      url,
+      mode: "live",
+      status: "ready",
+      excerpt: readingText.getExcerpt(part.text),
+      word_count: part.wordCount,
+      reading_minutes: part.readingMinutes,
+      kind: "artigo",
+      area: getMainArea(textThemes),
+      themes: textThemes,
+      series_id: seriesId,
+      part_number: isSeries ? index + 1 : null,
+      part_total: isSeries ? prepared.parts.length : null,
+    });
+
+    if (!reading) {
+      throw new ValidationError({
+        message: "This page was already added",
+        action: "Find it in your readings or add another page",
+      });
+    }
+
+    firstReading ??= reading;
+  }
+
+  return await readingModel.findById(firstReading.id);
+}
+
+function getMainArea(readingThemes) {
+  const counts = {};
+  for (const slug of readingThemes) {
+    const area = themes.find((theme) => theme.slug === slug)?.area;
+    if (area) counts[area] = (counts[area] ?? 0) + 1;
+  }
+
+  return (
+    Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "literatura"
+  );
+}
+
+function slugify(text) {
+  return readingText
+    .normalize(text)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function extractYear(title) {
   const match = title.match(/\((\d{4})\)/);
   return match ? Number(match[1]) : null;
@@ -258,6 +450,7 @@ const readingImportModel = {
   SOURCES,
   importNext,
   getStatus,
+  addLink,
 };
 
 export default readingImportModel;

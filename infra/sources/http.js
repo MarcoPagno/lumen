@@ -6,17 +6,33 @@ function sleep(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+function detectCharset(contentType, bytes) {
+  const fromHeader = /charset=["']?([\w-]+)/i.exec(contentType ?? "")?.[1];
+  if (fromHeader) return fromHeader;
+
+  const head = Buffer.from(bytes.subarray(0, 4000)).toString("latin1");
+  return /<meta[^>]+charset=["']?([\w-]+)/i.exec(head)?.[1] ?? "utf-8";
+}
+
+function decode(bytes, charset) {
+  try {
+    return new TextDecoder(charset).decode(bytes);
+  } catch {
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+}
+
 function createClient({ minIntervalInMilliseconds = 0, retries = 3 } = {}) {
   let lastRequestAt = 0;
 
-  async function getJson(url, { timeoutInMilliseconds = 20000 } = {}) {
+  async function request(url, { accept, timeoutInMilliseconds = 20000 }) {
     for (let attempt = 0; attempt <= retries; attempt++) {
       const waitTime = lastRequestAt + minIntervalInMilliseconds - Date.now();
       if (waitTime > 0) await sleep(waitTime);
       lastRequestAt = Date.now();
 
       const response = await fetch(url, {
-        headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+        headers: { "User-Agent": USER_AGENT, Accept: accept },
         signal: AbortSignal.timeout(timeoutInMilliseconds),
       });
 
@@ -33,7 +49,7 @@ function createClient({ minIntervalInMilliseconds = 0, retries = 3 } = {}) {
         });
       }
 
-      return response.json();
+      return response;
     }
 
     throw new ServiceError({
@@ -43,7 +59,27 @@ function createClient({ minIntervalInMilliseconds = 0, retries = 3 } = {}) {
     });
   }
 
-  return { getJson };
+  async function getJson(url, { timeoutInMilliseconds } = {}) {
+    const response = await request(url, {
+      accept: "application/json",
+      timeoutInMilliseconds,
+    });
+    return response.json();
+  }
+
+  async function getHtml(url, { timeoutInMilliseconds } = {}) {
+    const response = await request(url, {
+      accept: "text/html",
+      timeoutInMilliseconds,
+    });
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    return decode(
+      bytes,
+      detectCharset(response.headers.get("content-type"), bytes),
+    );
+  }
+
+  return { getJson, getHtml };
 }
 
 const http = {

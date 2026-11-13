@@ -57,6 +57,8 @@ describe("/api/v1/readings/imports", () => {
       const responseBody = await response.json();
       expect(responseBody.map((source) => source.source)).toEqual([
         "wikisource",
+        "vatican",
+        "permanencia",
         "olavo",
       ]);
       expect(responseBody[0].stats).toEqual({

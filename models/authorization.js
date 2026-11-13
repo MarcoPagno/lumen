@@ -183,7 +183,7 @@ function filterOutput(user, feature, resource) {
     };
   }
 
-  if (feature === "read:reading") {
+  if (feature === "read:reading" || feature === "create:reading") {
     return {
       id: resource.id,
       title: resource.title,

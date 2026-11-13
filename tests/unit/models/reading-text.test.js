@@ -150,3 +150,25 @@ describe("readingText.prepare", () => {
     expect(prepared.rejected).toBe("too_long");
   });
 });
+
+describe("readingText loose content", () => {
+  test("wraps loose text between blocks into paragraphs", () => {
+    const html = readingText.sanitizeHtml(
+      "Texto solto<br>com quebra<p>Parágrafo</p><span>Mais texto</span>",
+    );
+    expect(html).toBe(
+      "<p>Texto solto<br>com quebra</p><p>Parágrafo</p><p>Mais texto</p>",
+    );
+  });
+
+  test("splits long texts made of loose content", () => {
+    const sentence =
+      "O homem que procura a verdade não se contenta com as aparências da vida e busca nas coisas a razão de ser de tudo. ";
+    const looseText = Array.from(
+      { length: 400 },
+      () => `<div>${sentence}</div>`,
+    ).join("");
+    const prepared = readingText.prepare(looseText);
+    expect(prepared.parts.length).toBeGreaterThan(1);
+  });
+});

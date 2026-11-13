@@ -16,6 +16,9 @@ export const TONE_LABELS = {
 export const SOURCE_LABELS = {
   wikisource: "Wikisource",
   olavo: "olavodecarvalho.org",
+  vatican: "vatican.va",
+  permanencia: "Permanência",
+  link: "Página original",
 };
 
 export const THEMES = themes.map(({ slug, name, area }) => ({

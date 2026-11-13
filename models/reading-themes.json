@@ -429,7 +429,17 @@
     "slug": "familia",
     "name": "Família",
     "area": "literatura",
-    "terms": ["familia", "pai", "mae", "filho", "filha", "esposa", "casamento"],
+    "terms": [
+      "familia*",
+      "esposa",
+      "esposo",
+      "marido",
+      "casamento",
+      "filhos",
+      "filhas",
+      "irmaos",
+      "lar"
+    ],
     "subjects": ["family", "marriage"]
   },
   {

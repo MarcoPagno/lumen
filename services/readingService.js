@@ -17,6 +17,15 @@ async function saveLog(logData) {
   return response;
 }
 
+async function addLink(linkData) {
+  const response = await fetch("/api/v1/readings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(linkData),
+  });
+  return response;
+}
+
 async function importNext(source) {
   const response = await fetch("/api/v1/readings/imports", {
     method: "POST",
@@ -26,6 +35,6 @@ async function importNext(source) {
   return response;
 }
 
-const readingService = { getNext, getReading, saveLog, importNext };
+const readingService = { getNext, getReading, saveLog, addLink, importNext };
 
 export default readingService;

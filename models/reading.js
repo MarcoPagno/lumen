@@ -1,8 +1,8 @@
 import database from "infra/database.js";
 import localDate from "infra/date.js";
 import { NotFoundError } from "infra/errors.js";
-import olavo from "infra/sources/olavo.js";
 import readingText from "models/reading-text.js";
+import readingContent from "models/reading-content.js";
 import themes from "models/reading-themes.json";
 import bookModel from "models/book.js";
 
@@ -110,6 +110,8 @@ async function markReady(readingId, values) {
         series_id = $11,
         part_number = $12,
         part_total = $13,
+        title = COALESCE($14, title),
+        collection = COALESCE($15, collection),
         updated_at = timezone('utc', now())
       WHERE id = $1
       RETURNING *;`,
@@ -127,6 +129,8 @@ async function markReady(readingId, values) {
       values.series_id ?? null,
       values.part_number ?? null,
       values.part_total ?? null,
+      values.title ?? null,
+      values.collection ?? null,
     ],
   });
 
@@ -220,16 +224,10 @@ async function findByIdWithContent(readingId) {
     return reading;
   }
 
-  try {
-    const postId = reading.external_id.split("#")[0];
-    const html = readingText.sanitizeHtml(await olavo.fetchPostContent(postId));
-    const content = reading.part_number
-      ? readingText.splitIntoParts(html)[reading.part_number - 1]
-      : html;
-    return { ...reading, content: content ?? null };
-  } catch {
-    return { ...reading, content: null };
-  }
+  return {
+    ...reading,
+    content: await readingContent.fetchLiveContent(reading),
+  };
 }
 
 async function findNextForUser(userId) {
@@ -274,6 +272,7 @@ async function findNextForUser(userId) {
             readings.kind,
             readings.tone,
             readings.part_number,
+            readings.source,
             cardinality(ARRAY(
               SELECT unnest(readings.themes)
               INTERSECT
@@ -319,6 +318,7 @@ async function findNextForUser(userId) {
           3 * candidates.shared_themes
           + CASE WHEN candidates.same_author THEN 4 ELSE 0 END
           + CASE WHEN candidates.part_number > 1 THEN 8 ELSE 0 END
+          + CASE WHEN candidates.source = 'link' THEN 5 ELSE 0 END
           + 1.5 * LEAST(GREATEST(COALESCE(author_feedback.score, 0), -3), 3)
           - CASE WHEN candidates.author_id IN (SELECT author_id FROM recent) THEN 3 ELSE 0 END
           - CASE WHEN candidates.kind = (SELECT kind FROM recent LIMIT 1) THEN 1 ELSE 0 END
@@ -353,6 +353,10 @@ async function findNextForUser(userId) {
 function getReason(reading, activeBooks) {
   if (reading.part_number > 1) {
     return `Continuação: parte ${reading.part_number} de ${reading.part_total}`;
+  }
+
+  if (reading.source === "link") {
+    return "Adicionado por você";
   }
 
   const authorBook = activeBooks.find(
