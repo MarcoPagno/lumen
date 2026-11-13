@@ -1,0 +1,494 @@
+[
+  {
+    "slug": "deus",
+    "name": "Deus",
+    "area": "teologia",
+    "terms": ["deus", "divin*", "criador", "onipoten*", "providencia"],
+    "subjects": ["god", "providence"]
+  },
+  {
+    "slug": "cristo",
+    "name": "Cristo",
+    "area": "teologia",
+    "terms": ["cristo", "jesus", "redentor", "salvador", "encarnacao", "verbo"],
+    "subjects": ["jesus christ", "christology", "incarnation"]
+  },
+  {
+    "slug": "nossa-senhora",
+    "name": "Nossa Senhora",
+    "area": "teologia",
+    "terms": [
+      "virgem",
+      "nossa senhora",
+      "mae de deus",
+      "imaculad*",
+      "mariolog*",
+      "ave maria",
+      "rosario"
+    ],
+    "subjects": ["mary", "mariology", "virgin", "rosary"]
+  },
+  {
+    "slug": "espirito-santo",
+    "name": "Espírito Santo",
+    "area": "teologia",
+    "terms": ["espirito santo", "paraclito", "pentecost*"],
+    "subjects": ["holy spirit"]
+  },
+  {
+    "slug": "trindade",
+    "name": "Santíssima Trindade",
+    "area": "teologia",
+    "terms": ["trindade", "trinitari*"],
+    "subjects": ["trinity"]
+  },
+  {
+    "slug": "igreja",
+    "name": "Igreja",
+    "area": "teologia",
+    "terms": [
+      "igreja",
+      "papa",
+      "pontific*",
+      "bispo*",
+      "clero",
+      "sacerdot*",
+      "eclesias*",
+      "catolic*"
+    ],
+    "subjects": ["catholic church", "church", "papacy", "clergy"]
+  },
+  {
+    "slug": "eucaristia",
+    "name": "Eucaristia",
+    "area": "teologia",
+    "terms": [
+      "eucarist*",
+      "missa",
+      "missas",
+      "comunhao",
+      "hostia",
+      "santissimo sacramento",
+      "mandato"
+    ],
+    "subjects": ["eucharist", "lord's supper", "mass"]
+  },
+  {
+    "slug": "sacramentos",
+    "name": "Sacramentos",
+    "area": "teologia",
+    "terms": [
+      "sacrament*",
+      "batism*",
+      "confissao",
+      "penitencia",
+      "crisma",
+      "matrimonio",
+      "extrema-uncao"
+    ],
+    "subjects": ["sacraments", "baptism", "penance", "confession"]
+  },
+  {
+    "slug": "oracao",
+    "name": "Oração",
+    "area": "teologia",
+    "terms": ["oracao", "oracoes", "reza*", "prece*", "contemplac*", "orai"],
+    "subjects": ["prayer", "contemplation", "meditation"]
+  },
+  {
+    "slug": "graca",
+    "name": "Graça",
+    "area": "teologia",
+    "terms": [
+      "graca divina",
+      "graca de deus",
+      "graca santificante",
+      "justificacao",
+      "estado de graca"
+    ],
+    "subjects": ["grace", "justification"]
+  },
+  {
+    "slug": "pecado",
+    "name": "Pecado",
+    "area": "teologia",
+    "terms": ["pecad*", "concupiscen*", "tentac*", "vicio*"],
+    "subjects": ["sin", "temptation", "vice"]
+  },
+  {
+    "slug": "salvacao",
+    "name": "Salvação",
+    "area": "teologia",
+    "terms": ["salvacao", "redencao", "remissao", "salvar a alma"],
+    "subjects": ["salvation", "redemption"]
+  },
+  {
+    "slug": "virtudes",
+    "name": "Virtudes",
+    "area": "teologia",
+    "terms": [
+      "virtude*",
+      "caridade",
+      "humildade",
+      "paciencia",
+      "castidade",
+      "prudencia",
+      "temperanca",
+      "esperanca"
+    ],
+    "subjects": ["virtue", "virtues", "charity", "humility"]
+  },
+  {
+    "slug": "santidade",
+    "name": "Santidade",
+    "area": "teologia",
+    "terms": ["santidade", "santificac*", "martir*", "santos", "beat*"],
+    "subjects": ["holiness", "saints", "martyrs", "sanctification"]
+  },
+  {
+    "slug": "novissimos",
+    "name": "Morte e eternidade",
+    "area": "teologia",
+    "terms": [
+      "eternidade",
+      "juizo final",
+      "ceu",
+      "inferno",
+      "purgatorio",
+      "alma imortal",
+      "ressurreic*"
+    ],
+    "subjects": ["eschatology", "eternity", "heaven", "hell", "purgatory"]
+  },
+  {
+    "slug": "liturgia",
+    "name": "Liturgia",
+    "area": "teologia",
+    "terms": [
+      "liturgi*",
+      "rito*",
+      "quaresma",
+      "advento",
+      "pascoa",
+      "natal",
+      "dominga",
+      "altar"
+    ],
+    "subjects": ["liturgy", "lent", "advent", "easter", "christmas"]
+  },
+  {
+    "slug": "fe-e-razao",
+    "name": "Fé e razão",
+    "area": "teologia",
+    "terms": ["fe e razao", "revelac*", "teolog*", "dogma*", "doutrina"],
+    "subjects": ["faith and reason", "theology", "dogma", "revelation"]
+  },
+  {
+    "slug": "escritura",
+    "name": "Sagrada Escritura",
+    "area": "teologia",
+    "terms": [
+      "biblia",
+      "biblic*",
+      "evangelh*",
+      "escritura*",
+      "profeta*",
+      "salmo*",
+      "apostolo*"
+    ],
+    "subjects": ["bible", "gospels", "scripture", "psalms"]
+  },
+  {
+    "slug": "anjos-e-demonios",
+    "name": "Anjos e demônios",
+    "area": "teologia",
+    "terms": ["anjo*", "demonio*", "diabo*", "satanas", "lucifer"],
+    "subjects": ["angels", "demonology", "devil"]
+  },
+  {
+    "slug": "cruz-e-sofrimento",
+    "name": "Cruz e sofrimento",
+    "area": "teologia",
+    "terms": ["cruz", "sofriment*", "padeciment*", "calvario", "martirio"],
+    "subjects": ["suffering", "cross"]
+  },
+  {
+    "slug": "conversao",
+    "name": "Conversão",
+    "area": "teologia",
+    "terms": ["conversao", "convert*", "arrepend*", "contric*"],
+    "subjects": ["conversion", "repentance"]
+  },
+  {
+    "slug": "missao",
+    "name": "Missão e catequese",
+    "area": "teologia",
+    "terms": ["missao", "missionari*", "catequ*", "evangeliz*", "jesuit*"],
+    "subjects": ["missions", "catechetics", "evangelization", "jesuits"]
+  },
+  {
+    "slug": "doutrina-social",
+    "name": "Doutrina social",
+    "area": "teologia",
+    "terms": [
+      "doutrina social",
+      "operari*",
+      "justica social",
+      "propriedade",
+      "encicl*"
+    ],
+    "subjects": [
+      "catholic social teaching",
+      "christian sociology",
+      "social justice"
+    ]
+  },
+  {
+    "slug": "heresias",
+    "name": "Heresias e crise da fé",
+    "area": "teologia",
+    "terms": [
+      "heresi*",
+      "herege*",
+      "protestant*",
+      "lutero",
+      "modernismo",
+      "apostasia"
+    ],
+    "subjects": ["heresy", "protestantism", "modernism", "apostasy"]
+  },
+  {
+    "slug": "metafisica",
+    "name": "Metafísica",
+    "area": "filosofia",
+    "terms": [
+      "metafisic*",
+      "ontolog*",
+      "essencia",
+      "existencia",
+      "substancia",
+      "o ser"
+    ],
+    "subjects": ["metaphysics", "ontology", "being"]
+  },
+  {
+    "slug": "conhecimento",
+    "name": "Conhecimento e verdade",
+    "area": "filosofia",
+    "terms": [
+      "conhecimento",
+      "verdade",
+      "epistemolog*",
+      "certeza",
+      "inteligencia"
+    ],
+    "subjects": ["knowledge", "truth", "epistemology"]
+  },
+  {
+    "slug": "logica",
+    "name": "Lógica e argumentação",
+    "area": "filosofia",
+    "terms": ["logic*", "silogism*", "dialetic*", "premissa*", "falacia*"],
+    "subjects": ["logic", "reasoning", "dialectic"]
+  },
+  {
+    "slug": "etica",
+    "name": "Ética e moral",
+    "area": "filosofia",
+    "terms": ["etica", "moral", "moralidade", "dever", "bem e o mal"],
+    "subjects": ["ethics", "morality"]
+  },
+  {
+    "slug": "liberdade",
+    "name": "Liberdade",
+    "area": "filosofia",
+    "terms": ["liberdade", "livre-arbitrio", "livre arbitrio", "vontade"],
+    "subjects": ["liberty", "free will", "freedom"]
+  },
+  {
+    "slug": "alma-e-consciencia",
+    "name": "Alma e consciência",
+    "area": "filosofia",
+    "terms": ["consciencia", "alma", "psique", "interioridade"],
+    "subjects": ["consciousness", "soul", "philosophy of mind"]
+  },
+  {
+    "slug": "modernidade",
+    "name": "Modernidade",
+    "area": "filosofia",
+    "terms": ["modernidade", "progresso", "secular*", "revoluc*", "iluminis*"],
+    "subjects": ["civilization, modern", "modernity", "secularism"]
+  },
+  {
+    "slug": "politica",
+    "name": "Política",
+    "area": "filosofia",
+    "terms": [
+      "politic*",
+      "governo",
+      "democraci*",
+      "totalitar*",
+      "estado",
+      "eleic*"
+    ],
+    "subjects": ["political science", "politics", "democracy", "state"]
+  },
+  {
+    "slug": "ideologias",
+    "name": "Ideologias",
+    "area": "filosofia",
+    "terms": [
+      "ideolog*",
+      "marxis*",
+      "comunis*",
+      "socialis*",
+      "positivis*",
+      "globalis*"
+    ],
+    "subjects": ["ideology", "communism", "marxism", "socialism"]
+  },
+  {
+    "slug": "cultura",
+    "name": "Cultura e civilização",
+    "area": "filosofia",
+    "terms": ["cultura", "civilizac*", "tradic*", "decadencia"],
+    "subjects": ["civilization", "culture", "tradition"]
+  },
+  {
+    "slug": "educacao",
+    "name": "Educação",
+    "area": "filosofia",
+    "terms": ["educac*", "ensino", "escola*", "estudante*", "aprendiz*"],
+    "subjects": ["education", "teaching", "learning"]
+  },
+  {
+    "slug": "linguagem",
+    "name": "Linguagem",
+    "area": "filosofia",
+    "terms": ["linguagem", "retoric*", "gramatic*", "eloquencia", "estilo"],
+    "subjects": ["language", "rhetoric", "linguistics"]
+  },
+  {
+    "slug": "brasil",
+    "name": "Brasil",
+    "area": "historia",
+    "terms": [
+      "brasil",
+      "brasileir*",
+      "patria",
+      "imperio",
+      "republica",
+      "rio de janeiro"
+    ],
+    "subjects": ["brazil", "brazilian"]
+  },
+  {
+    "slug": "escravidao",
+    "name": "Escravidão e abolição",
+    "area": "historia",
+    "terms": ["escrav*", "abolic*", "cativ*", "senzala"],
+    "subjects": ["slavery", "abolition"]
+  },
+  {
+    "slug": "amor",
+    "name": "Amor",
+    "area": "literatura",
+    "terms": ["amor", "amores", "amad*", "namor*", "beijo*", "coracao"],
+    "subjects": ["love"]
+  },
+  {
+    "slug": "morte",
+    "name": "Morte",
+    "area": "literatura",
+    "terms": ["morte", "morrer", "morreu", "tumulo", "cemiterio", "funer*"],
+    "subjects": ["death"]
+  },
+  {
+    "slug": "natureza",
+    "name": "Natureza",
+    "area": "literatura",
+    "terms": [
+      "natureza",
+      "mar",
+      "flor",
+      "flores",
+      "luar",
+      "estrela*",
+      "sertao"
+    ],
+    "subjects": ["nature"]
+  },
+  {
+    "slug": "memoria",
+    "name": "Saudade e memória",
+    "area": "literatura",
+    "terms": ["saudade*", "lembranc*", "memoria*", "infancia", "recordac*"],
+    "subjects": ["memory", "childhood", "nostalgia"]
+  },
+  {
+    "slug": "familia",
+    "name": "Família",
+    "area": "literatura",
+    "terms": [
+      "familia*",
+      "esposa",
+      "esposo",
+      "marido",
+      "casamento",
+      "filhos",
+      "filhas",
+      "irmaos",
+      "lar"
+    ],
+    "subjects": ["family", "marriage"]
+  },
+  {
+    "slug": "cotidiano",
+    "name": "Cidade e cotidiano",
+    "area": "literatura",
+    "terms": ["cidade", "rua", "ruas", "bonde*", "vizinh*", "cotidiano"],
+    "subjects": ["city", "everyday life", "manners and customs"]
+  },
+  {
+    "slug": "humor",
+    "name": "Humor",
+    "area": "literatura",
+    "terms": ["riso", "risada*", "piada*", "anedot*", "comic*", "gracej*"],
+    "subjects": ["humor", "wit and humor", "anecdotes"]
+  },
+  {
+    "slug": "melancolia",
+    "name": "Solidão e melancolia",
+    "area": "literatura",
+    "terms": ["solidao", "tristeza", "melancol*", "tedio", "angustia"],
+    "subjects": ["melancholy", "loneliness"]
+  },
+  {
+    "slug": "arte-e-beleza",
+    "name": "Arte e beleza",
+    "area": "literatura",
+    "terms": ["arte", "belez*", "poesia", "poeta*", "musica", "pintura"],
+    "subjects": ["art", "aesthetics", "beauty", "poetry"]
+  },
+  {
+    "slug": "dinheiro",
+    "name": "Dinheiro e ambição",
+    "area": "literatura",
+    "terms": [
+      "dinheiro",
+      "riqueza",
+      "pobreza",
+      "avareza",
+      "ambicao",
+      "heranca"
+    ],
+    "subjects": ["wealth", "poverty", "money"]
+  },
+  {
+    "slug": "sociedade",
+    "name": "Sociedade e costumes",
+    "area": "literatura",
+    "terms": ["sociedade", "costume*", "vaidade", "aparencia*", "salao"],
+    "subjects": ["society", "social life and customs"]
+  }
+]

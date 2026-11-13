@@ -1,0 +1,534 @@
+[
+  {
+    "slug": "machado-de-assis",
+    "name": "Machado de Assis",
+    "birth_year": 1839,
+    "death_year": 1908,
+    "wikipedia": "Machado_de_Assis",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "leve",
+    "categories": ["Machado de Assis"]
+  },
+  {
+    "slug": "lima-barreto",
+    "name": "Lima Barreto",
+    "birth_year": 1881,
+    "death_year": 1922,
+    "wikipedia": "Lima_Barreto_(escritor)",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "leve",
+    "categories": ["Lima Barreto"]
+  },
+  {
+    "slug": "eca-de-queiros",
+    "name": "Eça de Queirós",
+    "birth_year": 1845,
+    "death_year": 1900,
+    "wikipedia": "Eça_de_Queirós",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "leve",
+    "categories": ["Eça de Queirós"]
+  },
+  {
+    "slug": "carlos-de-laet",
+    "name": "Carlos de Laet",
+    "birth_year": 1847,
+    "death_year": 1927,
+    "wikipedia": "Carlos_de_Laet",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "leve",
+    "kind": "crônica",
+    "categories": ["O Brasil Anedótico"]
+  },
+  {
+    "slug": "antonio-vieira",
+    "name": "Padre Antônio Vieira",
+    "birth_year": 1608,
+    "death_year": 1697,
+    "wikipedia": "Antônio_Vieira",
+    "source": "wikisource",
+    "area": "teologia",
+    "tone": "inspirador",
+    "kind": "sermão",
+    "pages": [
+      "Sermão da Sexagésima",
+      "Sermão de Santo António (1654)",
+      "Sermão do Mandato (1643)",
+      "Sermão do Mandato (1655)",
+      "Sermão do Mandato (1670)",
+      "Sermão da Quinta Dominga da Quaresma",
+      "Sermão da Dominga XIX depois do Pentecoste",
+      "Sermão pelo Bom Sucesso das Armas de Portugal contra as de Holanda (1640)"
+    ]
+  },
+  {
+    "slug": "jose-de-anchieta",
+    "name": "São José de Anchieta",
+    "birth_year": 1534,
+    "death_year": 1597,
+    "wikipedia": "José_de_Anchieta",
+    "source": "wikisource",
+    "area": "teologia",
+    "tone": "inspirador",
+    "categories": ["José de Anchieta"]
+  },
+  {
+    "slug": "alphonsus-de-guimaraens",
+    "name": "Alphonsus de Guimaraens",
+    "birth_year": 1870,
+    "death_year": 1921,
+    "wikipedia": "Alphonsus_de_Guimaraens",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "inspirador",
+    "kind": "poema",
+    "categories": ["Alphonsus de Guimaraens"]
+  },
+  {
+    "slug": "joaquim-nabuco",
+    "name": "Joaquim Nabuco",
+    "birth_year": 1849,
+    "death_year": 1910,
+    "wikipedia": "Joaquim_Nabuco",
+    "source": "wikisource",
+    "area": "historia",
+    "tone": "inspirador",
+    "categories": ["Joaquim Nabuco"]
+  },
+  {
+    "slug": "olavo-bilac",
+    "name": "Olavo Bilac",
+    "birth_year": 1865,
+    "death_year": 1918,
+    "wikipedia": "Olavo_Bilac",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "inspirador",
+    "categories": ["Olavo Bilac"]
+  },
+  {
+    "slug": "augusto-dos-anjos",
+    "name": "Augusto dos Anjos",
+    "birth_year": 1884,
+    "death_year": 1914,
+    "wikipedia": "Augusto_dos_Anjos",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "denso",
+    "kind": "poema",
+    "categories": ["Augusto dos Anjos"]
+  },
+  {
+    "slug": "cruz-e-sousa",
+    "name": "Cruz e Sousa",
+    "birth_year": 1861,
+    "death_year": 1898,
+    "wikipedia": "Cruz_e_Sousa",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "denso",
+    "kind": "poema",
+    "categories": ["Cruz e Sousa"]
+  },
+  {
+    "slug": "castro-alves",
+    "name": "Castro Alves",
+    "birth_year": 1847,
+    "death_year": 1871,
+    "wikipedia": "Castro_Alves",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "inspirador",
+    "kind": "poema",
+    "categories": ["Castro Alves"]
+  },
+  {
+    "slug": "goncalves-dias",
+    "name": "Gonçalves Dias",
+    "birth_year": 1823,
+    "death_year": 1864,
+    "wikipedia": "Gonçalves_Dias",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "inspirador",
+    "kind": "poema",
+    "categories": ["Gonçalves Dias"]
+  },
+  {
+    "slug": "alvares-de-azevedo",
+    "name": "Álvares de Azevedo",
+    "birth_year": 1831,
+    "death_year": 1852,
+    "wikipedia": "Álvares_de_Azevedo",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "denso",
+    "categories": ["Álvares de Azevedo"]
+  },
+  {
+    "slug": "joao-do-rio",
+    "name": "João do Rio",
+    "birth_year": 1881,
+    "death_year": 1921,
+    "wikipedia": "João_do_Rio",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "leve",
+    "kind": "crônica",
+    "categories": ["João do Rio"]
+  },
+  {
+    "slug": "raul-pompeia",
+    "name": "Raul Pompeia",
+    "birth_year": 1863,
+    "death_year": 1895,
+    "wikipedia": "Raul_Pompeia",
+    "source": "wikisource",
+    "area": "literatura",
+    "tone": "denso",
+    "categories": ["Raul Pompeia"]
+  },
+  {
+    "slug": "olavo-de-carvalho",
+    "name": "Olavo de Carvalho",
+    "birth_year": 1947,
+    "death_year": 2022,
+    "wikipedia": "Olavo_de_Carvalho",
+    "source": "olavo",
+    "area": "filosofia",
+    "tone": "denso",
+    "kind": "artigo"
+  },
+  {
+    "slug": "catecismo-da-igreja-catolica",
+    "name": "Catecismo da Igreja Católica",
+    "wikipedia": "Catecismo_da_Igreja_Católica",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "catechism": true
+  },
+  {
+    "slug": "leao-xiii",
+    "name": "Papa Leão XIII",
+    "birth_year": 1810,
+    "death_year": 1903,
+    "wikipedia": "Papa_Leão_XIII",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/leo-xiii/pt/encyclicals.index.html"
+    ]
+  },
+  {
+    "slug": "pio-x",
+    "name": "Papa São Pio X",
+    "birth_year": 1835,
+    "death_year": 1914,
+    "wikipedia": "Papa_Pio_X",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/pius-x/pt/encyclicals.index.html"
+    ]
+  },
+  {
+    "slug": "pio-xi",
+    "name": "Papa Pio XI",
+    "birth_year": 1857,
+    "death_year": 1939,
+    "wikipedia": "Papa_Pio_XI",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/pius-xi/pt/encyclicals.index.html"
+    ]
+  },
+  {
+    "slug": "pio-xii",
+    "name": "Papa Pio XII",
+    "birth_year": 1876,
+    "death_year": 1958,
+    "wikipedia": "Papa_Pio_XII",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/pius-xii/pt/encyclicals.index.html"
+    ]
+  },
+  {
+    "slug": "paulo-vi",
+    "name": "Papa São Paulo VI",
+    "birth_year": 1897,
+    "death_year": 1978,
+    "wikipedia": "Papa_Paulo_VI",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/paul-vi/pt/encyclicals.index.html"
+    ]
+  },
+  {
+    "slug": "joao-paulo-ii",
+    "name": "Papa São João Paulo II",
+    "birth_year": 1920,
+    "death_year": 2005,
+    "wikipedia": "Papa_João_Paulo_II",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/john-paul-ii/pt/encyclicals.index.html",
+      "https://www.vatican.va/content/john-paul-ii/pt/apost_exhortations.index.html"
+    ]
+  },
+  {
+    "slug": "bento-xvi",
+    "name": "Papa Bento XVI",
+    "birth_year": 1927,
+    "death_year": 2022,
+    "wikipedia": "Papa_Bento_XVI",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "inspirador",
+    "indexes": [
+      "https://www.vatican.va/content/benedict-xvi/pt/encyclicals.index.html",
+      "https://www.vatican.va/content/benedict-xvi/pt/apost_exhortations.index.html"
+    ]
+  },
+  {
+    "slug": "concilio-vaticano-ii",
+    "name": "Concílio Vaticano II",
+    "wikipedia": "Concílio_Vaticano_II",
+    "source": "vatican",
+    "area": "teologia",
+    "tone": "denso",
+    "documents": [
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_const_19641121_lumen-gentium_po.html",
+        "title": "Lumen Gentium: constituição dogmática sobre a Igreja",
+        "year": 1964
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_const_19651118_dei-verbum_po.html",
+        "title": "Dei Verbum: constituição dogmática sobre a Revelação divina",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_const_19631204_sacrosanctum-concilium_po.html",
+        "title": "Sacrosanctum Concilium: constituição sobre a sagrada liturgia",
+        "year": 1963
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_const_19651207_gaudium-et-spes_po.html",
+        "title": "Gaudium et Spes: constituição pastoral sobre a Igreja no mundo actual",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decl_19651028_gravissimum-educationis_po.html",
+        "title": "Gravissimum Educationis: declaração sobre a educação cristã",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decl_19651207_dignitatis-humanae_po.html",
+        "title": "Dignitatis Humanae: declaração sobre a liberdade religiosa",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decl_19651028_nostra-aetate_po.html",
+        "title": "Nostra Aetate: declaração sobre a Igreja e as religiões não-cristãs",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651207_presbyterorum-ordinis_po.html",
+        "title": "Presbyterorum Ordinis: decreto sobre o ministério e a vida dos sacerdotes",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651028_perfectae-caritatis_po.html",
+        "title": "Perfectae Caritatis: decreto sobre a vida religiosa",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651118_apostolicam-actuositatem_po.html",
+        "title": "Apostolicam Actuositatem: decreto sobre o apostolado dos leigos",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19641121_unitatis-redintegratio_po.html",
+        "title": "Unitatis Redintegratio: decreto sobre o ecumenismo",
+        "year": 1964
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651207_ad-gentes_po.html",
+        "title": "Ad Gentes: decreto sobre a actividade missionária da Igreja",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651028_christus-dominus_po.html",
+        "title": "Christus Dominus: decreto sobre o múnus pastoral dos bispos",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19651028_optatam-totius_po.html",
+        "title": "Optatam Totius: decreto sobre a formação sacerdotal",
+        "year": 1965
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19631204_inter-mirifica_po.html",
+        "title": "Inter Mirifica: decreto sobre os meios de comunicação social",
+        "year": 1963
+      },
+      {
+        "url": "https://www.vatican.va/archive/hist_councils/ii_vatican_council/documents/vat-ii_decree_19641121_orientalium-ecclesiarum_po.html",
+        "title": "Orientalium Ecclesiarum: decreto sobre as Igrejas orientais católicas",
+        "year": 1964
+      }
+    ]
+  },
+  {
+    "slug": "gustavo-corcao",
+    "name": "Gustavo Corção",
+    "birth_year": 1896,
+    "death_year": 1978,
+    "wikipedia": "Gustavo_Corção",
+    "source": "permanencia",
+    "area": "teologia",
+    "tone": "inspirador",
+    "kind": "artigo",
+    "lists": [
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar_artigos_corcao/45",
+        "name": "Gustavo Corção",
+        "area": "teologia"
+      }
+    ],
+    "article_pattern": "detalhar_gustavo_corcao/\\d+"
+  },
+  {
+    "slug": "revista-permanencia",
+    "name": "Revista Permanência",
+    "source": "permanencia",
+    "area": "teologia",
+    "tone": "inspirador",
+    "kind": "artigo",
+    "lists": [
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/2",
+        "name": "Apologética",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/4",
+        "name": "Teologia",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/5",
+        "name": "Filosofia",
+        "area": "filosofia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/6",
+        "name": "História",
+        "area": "historia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/7",
+        "name": "Crise da Igreja",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/8",
+        "name": "Família",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/9",
+        "name": "Espiritualidade",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/10",
+        "name": "Arte",
+        "area": "literatura"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/11",
+        "name": "Magistério da Igreja",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/12",
+        "name": "Pensamento",
+        "area": "filosofia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/13",
+        "name": "Política e Civilização",
+        "area": "filosofia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/14",
+        "name": "Sim Sim Não Não",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/15",
+        "name": "Livros on line",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/44",
+        "name": "Missa Tradicional",
+        "area": "teologia"
+      }
+    ],
+    "article_pattern": "/paginas/detalhar/\\d+$"
+  },
+  {
+    "slug": "carlos-drummond-de-andrade",
+    "name": "Carlos Drummond de Andrade",
+    "birth_year": 1902,
+    "death_year": 1987,
+    "wikipedia": "Carlos_Drummond_de_Andrade",
+    "source": "escritas",
+    "area": "literatura",
+    "tone": "inspirador",
+    "kind": "poema",
+    "escritas_slug": "carlos-drummond-de-andrade"
+  },
+  {
+    "slug": "manuel-bandeira",
+    "name": "Manuel Bandeira",
+    "birth_year": 1886,
+    "death_year": 1968,
+    "wikipedia": "Manuel_Bandeira",
+    "source": "escritas",
+    "area": "literatura",
+    "tone": "inspirador",
+    "kind": "poema",
+    "escritas_slug": "manuel-bandeira"
+  },
+  {
+    "slug": "bruno-tolentino",
+    "name": "Bruno Tolentino",
+    "birth_year": 1940,
+    "death_year": 2007,
+    "wikipedia": "Bruno_Tolentino",
+    "source": "escritas",
+    "area": "literatura",
+    "tone": "inspirador",
+    "kind": "poema",
+    "escritas_slug": "bruno-tolentino"
+  }
+]

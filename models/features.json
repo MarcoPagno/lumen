@@ -21,5 +21,21 @@
 
   "create:review",
   "read:queue:self",
-  "read:review_session:self"
+  "read:review_session:self",
+
+  "read:reading",
+  "create:reading",
+  "update:reading_favorite:self",
+  "create:reading_log",
+  "read:reading_log:self",
+  "create:reading_import",
+
+  "create:diary_entry",
+  "read:diary_entry:self",
+  "update:diary_entry:self",
+  "delete:diary_entry:self",
+
+  "create:book",
+  "read:book:self",
+  "update:book:self"
 ]

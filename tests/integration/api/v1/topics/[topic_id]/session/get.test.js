@@ -1,5 +1,6 @@
 import orchestrator from "tests/orchestrator.js";
 import webserver from "infra/webserver.js";
+import date from "infra/date.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -30,7 +31,7 @@ describe("GET /api/v1/topics/[topic_id]/session", () => {
       const daily = reviews.find((r) => r.type === "daily");
       await orchestrator.setReviewScheduledDate(
         daily.id,
-        new Date().toISOString().slice(0, 10),
+        date.getTodayDateOnly(),
       );
 
       const response = await fetch(

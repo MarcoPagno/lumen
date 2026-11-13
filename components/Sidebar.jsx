@@ -10,13 +10,45 @@ import { useRouter } from "next/router.js";
 import { useUser } from "hooks/useUser.js";
 
 const links = [
-  { href: "/", label: "Fila de hoje", feature: "read:queue:self" },
+  { href: "/", label: "Hoje" },
+  { href: "/leituras", label: "Leitura rápida", feature: "read:reading" },
+  {
+    href: "/leituras/biblioteca",
+    label: "Biblioteca",
+    feature: "read:reading",
+  },
+  {
+    href: "/leituras/biblioteca?status=favorites",
+    label: "Favoritos",
+    feature: "update:reading_favorite:self",
+  },
+  { href: "/diario", label: "Diário", feature: "read:diary_entry:self" },
+  {
+    href: "/leituras/adicionar",
+    label: "Adicionar leitura",
+    feature: "create:reading",
+  },
+  {
+    href: "/leituras/estou-lendo",
+    label: "Estou lendo",
+    feature: "read:book:self",
+  },
+  {
+    href: "/leituras/historico",
+    label: "Minhas leituras",
+    feature: "read:reading_log:self",
+  },
   {
     href: "/temas/novo",
     label: "Estudar tema novo",
     feature: "create:topic",
   },
   { href: "/falar-com-deus", label: "Falar com Deus" },
+  {
+    href: "/leituras/importar",
+    label: "Importar leituras",
+    feature: "create:reading_import",
+  },
   { href: "/status", label: "Status", feature: "read:status:all" },
   { href: "/migrations", label: "Migrations", feature: "read:migration" },
 ];

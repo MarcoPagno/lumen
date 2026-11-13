@@ -129,6 +129,18 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
         "create:review",
         "read:queue:self",
         "read:review_session:self",
+        "read:reading",
+        "create:reading",
+        "update:reading_favorite:self",
+        "create:diary_entry",
+        "read:diary_entry:self",
+        "update:diary_entry:self",
+        "delete:diary_entry:self",
+        "create:reading_log",
+        "read:reading_log:self",
+        "create:book",
+        "read:book:self",
+        "update:book:self",
       ]);
     });
 

@@ -58,6 +58,11 @@ export default function DefaultLayout({ children, title }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{pageTitle}</title>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <meta name="theme-color" content="#1c1917" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Lumen" />
       </Head>
       <div className="min-h-screen bg-background text-foreground flex flex-col">
         {mounted && (

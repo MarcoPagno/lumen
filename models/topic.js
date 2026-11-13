@@ -1,10 +1,11 @@
 import database from "infra/database.js";
 import { ValidationError, NotFoundError } from "infra/errors.js";
+import date from "infra/date.js";
 
 async function create(userId, inputValues) {
   validateTitle(inputValues.title);
 
-  const studiedAt = toDateOnlyString(new Date());
+  const studiedAt = date.getTodayDateOnly();
 
   const newTopic = await runInsertQuery(userId, inputValues, studiedAt);
   return newTopic;
@@ -97,10 +98,6 @@ function validateTitle(title) {
       action: "Provide a valid title for the topic",
     });
   }
-}
-
-function toDateOnlyString(date) {
-  return date.toISOString().slice(0, 10);
 }
 
 const topicModel = {

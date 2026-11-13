@@ -12,6 +12,10 @@ export function useForm(initialValues) {
     }));
   }
 
+  function resetForm() {
+    setFormData(initialValues);
+  }
+
   return {
     formData,
     isLoading,
@@ -19,5 +23,6 @@ export function useForm(initialValues) {
     errorMessage,
     setErrorMessage,
     handleChange,
+    resetForm,
   };
 }
