@@ -107,6 +107,7 @@ describe("POST /api/v1/sessions", () => {
         "read:review_session:self",
         "read:reading",
         "create:reading",
+        "update:reading_favorite:self",
         "create:diary_entry",
         "read:diary_entry:self",
         "update:diary_entry:self",

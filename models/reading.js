@@ -395,6 +395,147 @@ function getReason(reading, activeBooks) {
   return null;
 }
 
+const LIST_PAGE_SIZE = 30;
+const LIST_STATUSES = ["read", "unread", "in_progress", "favorites"];
+const ACCENTED = "áàâãäéèêëíìîïóòôõöúùûüç";
+const UNACCENTED = "aaaaaeeeeiiiiooooouuuuc";
+
+async function findAllForUser(userId, filters = {}) {
+  const status = LIST_STATUSES.includes(filters.status) ? filters.status : null;
+  const page = Math.max(1, Number.parseInt(filters.page, 10) || 1);
+  const search = filters.search?.trim()
+    ? readingText.normalize(filters.search.trim()).replace(/[%_\\]/g, "\\$&")
+    : null;
+
+  const result = await database.query({
+    text: `
+      WITH roots AS (
+        SELECT
+          readings.*,
+          authors.name AS author_name,
+          authors.slug AS author_slug,
+          COALESCE(readings.part_total, 1) AS parts,
+          COALESCE(
+            (
+              SELECT SUM(parts.reading_minutes)
+              FROM readings AS parts
+              WHERE readings.series_id IS NOT NULL
+                AND parts.series_id = readings.series_id
+            ),
+            readings.reading_minutes
+          )::int AS total_minutes,
+          (
+            SELECT COUNT(*)
+            FROM reading_logs
+            JOIN readings AS parts ON parts.id = reading_logs.reading_id
+            WHERE
+              reading_logs.user_id = $1
+              AND reading_logs.status = 'read'
+              AND (
+                parts.id = readings.id
+                OR (readings.series_id IS NOT NULL AND parts.series_id = readings.series_id)
+              )
+          )::int AS read_parts,
+          reading_favorites.created_at AS favorited_at
+        FROM readings
+        JOIN authors ON authors.id = readings.author_id
+        LEFT JOIN reading_favorites
+          ON reading_favorites.reading_id = readings.id
+          AND reading_favorites.user_id = $1
+        WHERE
+          readings.status = 'ready'
+          AND (readings.part_number IS NULL OR readings.part_number = 1)
+          AND (
+            $2::text IS NULL
+            OR translate(
+              lower(readings.title || ' ' || COALESCE(readings.collection, '') || ' ' || authors.name),
+              '${ACCENTED}',
+              '${UNACCENTED}'
+            ) LIKE '%' || $2 || '%'
+          )
+          AND ($3::text IS NULL OR authors.slug = $3)
+          AND ($4::text IS NULL OR readings.kind = $4)
+          AND ($5::text IS NULL OR readings.area = $5)
+          AND ($6::text IS NULL OR $6 = ANY(readings.themes))
+          AND ($7::text IS NULL OR readings.source = $7)
+      )
+      SELECT *, COUNT(*) OVER()::int AS total_count
+      FROM roots
+      WHERE
+        $8::text IS NULL
+        OR ($8 = 'favorites' AND favorited_at IS NOT NULL)
+        OR ($8 = 'read' AND read_parts >= parts)
+        OR ($8 = 'in_progress' AND read_parts > 0 AND read_parts < parts)
+        OR ($8 = 'unread' AND read_parts = 0)
+      ORDER BY
+        CASE WHEN $8 = 'favorites' THEN favorited_at END DESC NULLS LAST,
+        author_name,
+        collection NULLS FIRST,
+        title
+      LIMIT $9 OFFSET $10;`,
+    values: [
+      userId,
+      search,
+      filters.author || null,
+      filters.kind || null,
+      filters.area || null,
+      filters.theme || null,
+      filters.source || null,
+      status,
+      LIST_PAGE_SIZE,
+      (page - 1) * LIST_PAGE_SIZE,
+    ],
+  });
+
+  return {
+    items: result.rows,
+    total: result.rows[0]?.total_count ?? 0,
+    page,
+    page_size: LIST_PAGE_SIZE,
+  };
+}
+
+async function findFacets() {
+  const rootsCondition = `
+    readings.status = 'ready'
+    AND (readings.part_number IS NULL OR readings.part_number = 1)`;
+
+  const [authors, kinds, areas, sources] = await Promise.all([
+    database.query(`
+      SELECT authors.slug, authors.name, COUNT(*)::int AS count
+      FROM readings
+      JOIN authors ON authors.id = readings.author_id
+      WHERE ${rootsCondition}
+      GROUP BY authors.slug, authors.name
+      ORDER BY authors.name;`),
+    database.query(`
+      SELECT kind AS value, COUNT(*)::int AS count
+      FROM readings
+      WHERE ${rootsCondition} AND kind IS NOT NULL
+      GROUP BY kind
+      ORDER BY count DESC;`),
+    database.query(`
+      SELECT area AS value, COUNT(*)::int AS count
+      FROM readings
+      WHERE ${rootsCondition} AND area IS NOT NULL
+      GROUP BY area
+      ORDER BY count DESC;`),
+    database.query(`
+      SELECT source AS value, COUNT(*)::int AS count
+      FROM readings
+      WHERE ${rootsCondition}
+      GROUP BY source
+      ORDER BY count DESC;`),
+  ]);
+
+  return {
+    authors: authors.rows,
+    kinds: kinds.rows,
+    areas: areas.rows,
+    sources: sources.rows,
+  };
+}
+
 const readingModel = {
   insertCandidates,
   insertProcessed,
@@ -406,6 +547,8 @@ const readingModel = {
   findById,
   findByIdWithContent,
   findNextForUser,
+  findAllForUser,
+  findFacets,
 };
 
 export default readingModel;

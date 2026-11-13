@@ -7,6 +7,7 @@ import { Button } from "src/components/ui/button";
 import { Textarea } from "src/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ReadingMetaBadges, ThemeBadges } from "components/ReadingBadges.jsx";
+import FavoriteButton from "components/FavoriteButton.jsx";
 import readingService from "services/readingService.js";
 import { parseApiError } from "utils/api.js";
 import { SOURCE_LABELS, getAuthorYears } from "utils/readings.js";
@@ -70,6 +71,10 @@ export default function LeiturasPage() {
     loadNext();
   }, [router.isReady, router.query.id, loadNext, loadReading, resetState]);
 
+  function handleFavoriteChange(isFavorite) {
+    setReading((current) => ({ ...current, is_favorite: isFavorite }));
+  }
+
   async function handleLog(status) {
     setIsSaving(true);
     try {
@@ -119,17 +124,25 @@ export default function LeiturasPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-3">
         <ReadingMetaBadges reading={reading} />
-        <div>
-          <h1 className="font-serif text-3xl font-semibold leading-tight">
-            {reading.title}
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            {reading.author.name}
-            {reading.year && ` · ${reading.year}`}
-            {reading.collection &&
-              !reading.title.startsWith(reading.collection) &&
-              ` · ${reading.collection}`}
-          </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="font-serif text-3xl font-semibold leading-tight">
+              {reading.title}
+            </h1>
+            <p className="mt-1 text-muted-foreground">
+              {reading.author.name}
+              {reading.year && ` · ${reading.year}`}
+              {reading.collection &&
+                !reading.title.startsWith(reading.collection) &&
+                ` · ${reading.collection}`}
+            </p>
+          </div>
+          <FavoriteButton
+            key={`${reading.id}-${reading.is_favorite}`}
+            readingId={reading.id}
+            isFavorite={reading.is_favorite}
+            onChange={handleFavoriteChange}
+          />
         </div>
         {reading.reason && (
           <p className="rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
@@ -174,7 +187,14 @@ export default function LeiturasPage() {
       </p>
 
       <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <FavoriteButton
+            key={`${reading.id}-${reading.is_favorite}-label`}
+            readingId={reading.id}
+            isFavorite={reading.is_favorite}
+            onChange={handleFavoriteChange}
+            showLabel
+          />
           <Button
             variant={reaction === "liked" ? "default" : "outline"}
             size="sm"

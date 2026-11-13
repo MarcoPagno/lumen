@@ -183,6 +183,47 @@ function filterOutput(user, feature, resource) {
     };
   }
 
+  if (feature === "read:reading" && Array.isArray(resource.items)) {
+    return {
+      items: resource.items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        collection: item.collection,
+        source: item.source,
+        kind: item.kind,
+        area: item.area,
+        tone: item.tone,
+        themes: item.themes,
+        year: item.year,
+        excerpt: item.excerpt,
+        part_total: item.part_total,
+        total_minutes: item.total_minutes,
+        read_parts: item.read_parts,
+        is_favorite: Boolean(item.favorited_at),
+        author: { name: item.author_name, slug: item.author_slug },
+      })),
+      total: resource.total,
+      page: resource.page,
+      page_size: resource.page_size,
+    };
+  }
+
+  if (feature === "read:reading" && resource.authors && resource.kinds) {
+    return {
+      authors: resource.authors,
+      kinds: resource.kinds,
+      areas: resource.areas,
+      sources: resource.sources,
+    };
+  }
+
+  if (feature === "update:reading_favorite:self") {
+    return {
+      reading_id: resource.reading_id,
+      is_favorite: resource.is_favorite,
+    };
+  }
+
   if (feature === "read:reading" || feature === "create:reading") {
     return {
       id: resource.id,
@@ -203,6 +244,7 @@ function filterOutput(user, feature, resource) {
       part_number: resource.part_number,
       part_total: resource.part_total,
       reason: resource.reason ?? null,
+      is_favorite: resource.is_favorite ?? false,
       author: {
         name: resource.author_name,
         slug: resource.author_slug,

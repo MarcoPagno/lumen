@@ -26,6 +26,13 @@ async function addLink(linkData) {
   return response;
 }
 
+async function setFavorite(readingId, isFavorite) {
+  const response = await fetch(`/api/v1/readings/${readingId}/favorite`, {
+    method: isFavorite ? "PUT" : "DELETE",
+  });
+  return response;
+}
+
 async function importNext(source) {
   const response = await fetch("/api/v1/readings/imports", {
     method: "POST",
@@ -35,6 +42,13 @@ async function importNext(source) {
   return response;
 }
 
-const readingService = { getNext, getReading, saveLog, addLink, importNext };
+const readingService = {
+  getNext,
+  getReading,
+  saveLog,
+  addLink,
+  setFavorite,
+  importNext,
+};
 
 export default readingService;

@@ -64,6 +64,7 @@ describe("GET /api/v1/readings/[reading_id]", () => {
         part_number: null,
         part_total: null,
         reason: null,
+        is_favorite: false,
         author: {
           name: "Alphonsus de Guimaraens",
           slug: author.slug,

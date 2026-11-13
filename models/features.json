@@ -25,6 +25,7 @@
 
   "read:reading",
   "create:reading",
+  "update:reading_favorite:self",
   "create:reading_log",
   "read:reading_log:self",
   "create:reading_import",
