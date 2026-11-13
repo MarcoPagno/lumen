@@ -1,6 +1,7 @@
 import vatican from "infra/sources/vatican.js";
 import permanencia from "infra/sources/permanencia.js";
 import webpage from "infra/sources/webpage.js";
+import escritas from "infra/sources/escritas.js";
 import readingText from "models/reading-text.js";
 
 const LONG_PARAGRAPH =
@@ -139,5 +140,53 @@ describe("webpage.validateUrl", () => {
     ]) {
       expect(() => webpage.validateUrl(url)).toThrow("Invalid URL");
     }
+  });
+});
+
+describe("permanencia.extractArticle byline", () => {
+  test("detects the author line below the title", () => {
+    const article = permanencia.extractArticle(`
+      <div class="col-lg-12 mb-3"><h2>O terceiro segredo</h2>
+      <p class="rteright"><em>Dom Lourenço Fleichman, OSB</em></p>
+      <p>Texto do artigo.</p></div>`);
+
+    expect(article.author).toBe("Dom Lourenço Fleichman, OSB");
+    expect(readingText.toPlainText(article.html)).toBe("Texto do artigo.");
+  });
+
+  test("does not take quotes or dedications as author", () => {
+    for (const line of [
+      "“Ide vós também para a minha vinha”",
+      "A Carlos Drummond de Andrade",
+      "Uma frase em itálico que termina com ponto.",
+    ]) {
+      const article = permanencia.extractArticle(
+        `<div class="col-lg-12"><h2>Título</h2><p><em>${line}</em></p><p>Texto.</p></div>`,
+      );
+      expect(article.author).toBeNull();
+    }
+  });
+});
+
+describe("escritas.extractPoem", () => {
+  const page = `
+    <header>
+      <h1 class="poem-display-title">Sagração dos Ossos</h1>
+      <a href="/pt/bruno-tolentino">Bruno Tolentino</a>
+    </header>
+    <div class="poem-body">Considerai estes ossos<br />— tíbios, inúteis —<br /><br />que sob a lápide dormem</div>`;
+
+  test("extracts title and verses", () => {
+    const poem = escritas.extractPoem(page, "bruno-tolentino");
+    expect(poem.title).toBe("Sagração dos Ossos");
+    expect(poem.isFromAuthor).toBe(true);
+    expect(readingText.sanitizeHtml(poem.html)).toBe(
+      "<p>Considerai estes ossos<br>— tíbios, inúteis —<br><br>que sob a lápide dormem</p>",
+    );
+  });
+
+  test("detects poems from other authors", () => {
+    const poem = escritas.extractPoem(page, "manuel-bandeira");
+    expect(poem.isFromAuthor).toBe(false);
   });
 });

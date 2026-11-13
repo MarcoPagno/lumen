@@ -3,6 +3,7 @@ import useSWR from "swr";
 import { BookOpen, Sun } from "lucide-react";
 import { Button } from "src/components/ui/button";
 import { ReadingMetaBadges } from "components/ReadingBadges.jsx";
+import DiaryForm from "components/DiaryForm.jsx";
 import { useUser } from "hooks/useUser.js";
 
 const TYPE_LABELS = {
@@ -24,6 +25,7 @@ function Home() {
   const { user, isLoading: isUserLoading } = useUser();
   const canRead = user?.features?.includes("read:reading");
   const canReview = user?.features?.includes("read:queue:self");
+  const canWriteDiary = user?.features?.includes("create:diary_entry");
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,6 +43,21 @@ function Home() {
           <p className="text-sm text-muted-foreground">Falar com Deus</p>
         </div>
       </Link>
+
+      {canWriteDiary && (
+        <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-medium">Diário</h2>
+            <Link
+              href="/diario"
+              className="text-sm text-muted-foreground underline"
+            >
+              Ver anotações
+            </Link>
+          </div>
+          <DiaryForm placeholder="Como foi o dia?" />
+        </section>
+      )}
 
       {!isUserLoading && !user && (
         <p className="text-muted-foreground">

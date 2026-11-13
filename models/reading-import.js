@@ -4,6 +4,7 @@ import wikisource from "infra/sources/wikisource.js";
 import olavo from "infra/sources/olavo.js";
 import vatican from "infra/sources/vatican.js";
 import permanencia from "infra/sources/permanencia.js";
+import escritas from "infra/sources/escritas.js";
 import webpage from "infra/sources/webpage.js";
 import wikipedia from "infra/sources/wikipedia.js";
 import authorModel from "models/author.js";
@@ -13,6 +14,9 @@ import authorsConfig from "models/reading-authors.json";
 import themes from "models/reading-themes.json";
 
 const DOCUMENT_MAX_PARTS = 40;
+
+const AUTHOR_DESCRIPTION_PATTERN =
+  /cat[oó]lic|padre|sacerdote|bispo|arcebispo|cardeal|te[oó]log|fil[oó]sof|escritor|jornalista|monge|santo|papa|professor|historiador|poeta/i;
 
 const SOURCES = {
   wikisource: {
@@ -36,6 +40,13 @@ const SOURCES = {
     discover: permanencia.discover,
     process: processPermanencia,
   },
+  escritas: {
+    name: "Escritas.org",
+    mode: "live",
+    batchSize: 10,
+    discover: escritas.discover,
+    process: processEscritas,
+  },
   olavo: {
     name: "olavodecarvalho.org",
     mode: "live",
@@ -58,6 +69,21 @@ async function importNext(source) {
     : await importNextFromSource(source);
   const stats = await readingModel.countBySource(source);
   return { source, ...result, stats };
+}
+
+async function importAll({ budgetInMilliseconds = 200000 } = {}) {
+  const startedAt = Date.now();
+  const sources = {};
+
+  for (const source of Object.keys(SOURCES)) {
+    while (Date.now() - startedAt < budgetInMilliseconds) {
+      const result = await importNext(source);
+      sources[source] = result.stats;
+      if (result.done) break;
+    }
+  }
+
+  return { sources, elapsed_in_milliseconds: Date.now() - startedAt };
 }
 
 async function getStatus() {
@@ -148,6 +174,7 @@ async function importNextFromSource(source) {
 async function saveItems(pending, result, mode) {
   const { items, isSeries, classification } = result;
   const series = isSeries && items.length > 1;
+  const authorId = result.authorId ?? pending.author_id;
 
   for (const [index, item] of items.entries()) {
     const values = {
@@ -162,6 +189,7 @@ async function saveItems(pending, result, mode) {
       series_id: series ? pending.id : null,
       part_number: series ? index + 1 : null,
       part_total: series ? items.length : null,
+      author_id: authorId,
     };
 
     if (index === 0) {
@@ -170,7 +198,7 @@ async function saveItems(pending, result, mode) {
     }
 
     const suffix = series ? `#${index + 1}` : `#u${index}`;
-    await readingModel.insertProcessed(pending.author_id, pending.source, {
+    await readingModel.insertProcessed(authorId, pending.source, {
       ...values,
       external_id: `${pending.external_id}${suffix}`,
       url: pending.url,
@@ -257,19 +285,69 @@ async function processPermanencia(pending, authorConfig) {
   const prepared = readingText.prepare(article.html);
   if (prepared.rejected) return prepared;
 
+  const list = authorConfig?.lists?.find((item) =>
+    pending.collection?.startsWith(item.name),
+  );
+  const articleAuthor = article.author
+    ? await ensureAuthorByName(article.author)
+    : null;
+
   return {
     items: prepared.parts.map((part) => ({
       ...part,
       title: article.title ?? pending.title,
     })),
     isSeries: true,
+    authorId: articleAuthor?.id,
     classification: {
       kind: authorConfig?.kind ?? "artigo",
-      area: authorConfig?.area ?? "teologia",
+      area: list?.area ?? authorConfig?.area ?? "teologia",
       tone: authorConfig?.tone ?? null,
       themes: readingText.detectThemes(prepared.text),
     },
   };
+}
+
+async function processEscritas(pending, authorConfig) {
+  const poem = escritas.extractPoem(
+    await escritas.fetchPage(pending.url),
+    authorConfig.escritas_slug,
+  );
+  if (!poem.isFromAuthor) return { rejected: "other_author" };
+
+  const prepared = readingText.prepare(poem.html);
+  if (prepared.rejected) return prepared;
+
+  return {
+    items: prepared.parts.map((part) => ({
+      ...part,
+      title: poem.title ?? pending.title,
+    })),
+    isSeries: true,
+    classification: {
+      kind: authorConfig.kind ?? "poema",
+      area: authorConfig.area ?? "literatura",
+      tone: authorConfig.tone ?? null,
+      themes: readingText.detectThemes(prepared.text),
+    },
+  };
+}
+
+async function ensureAuthorByName(rawName) {
+  const name = rawName
+    .split(/\s+-\s+|[,(–—]/)[0]
+    .replace(/^(por|by)\s+/i, "")
+    .trim();
+  if (name.length < 4 || name.length > 60) return null;
+
+  const slug = slugify(name);
+  const existing = await authorModel.findBySlug(slug);
+  if (existing) return existing;
+
+  const summary = await wikipedia.fetchSummary(name.replace(/ /g, "_"));
+  const isRelevant = AUTHOR_DESCRIPTION_PATTERN.test(summary?.bio ?? "");
+
+  return await authorModel.upsert({ slug, name }, isRelevant ? summary : null);
 }
 
 async function importNextOlavo() {
@@ -449,6 +527,7 @@ function validateSource(source) {
 const readingImportModel = {
   SOURCES,
   importNext,
+  importAll,
   getStatus,
   addLink,
 };

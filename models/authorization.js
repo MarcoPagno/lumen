@@ -246,6 +246,32 @@ function filterOutput(user, feature, resource) {
     };
   }
 
+  if (
+    feature === "create:diary_entry" ||
+    feature === "read:diary_entry:self" ||
+    feature === "update:diary_entry:self" ||
+    feature === "delete:diary_entry:self"
+  ) {
+    if (Array.isArray(resource)) {
+      return resource.map((entry) => filterOutput(user, feature, entry));
+    }
+
+    if (user.id !== resource.user_id) {
+      throw new ForbiddenError({
+        message: "You are not allowed to access another user's diary",
+        action: "Make sure you are accessing your own diary",
+      });
+    }
+
+    return {
+      id: resource.id,
+      entry_date: resource.entry_date,
+      content: resource.content,
+      created_at: resource.created_at,
+      updated_at: resource.updated_at,
+    };
+  }
+
   if (feature === "create:reading_import") {
     return resource;
   }

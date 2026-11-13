@@ -2,6 +2,7 @@ import olavo from "infra/sources/olavo.js";
 import vatican from "infra/sources/vatican.js";
 import permanencia from "infra/sources/permanencia.js";
 import webpage from "infra/sources/webpage.js";
+import escritas from "infra/sources/escritas.js";
 import readingText from "models/reading-text.js";
 
 const LIVE_FETCHERS = {
@@ -22,6 +23,10 @@ const LIVE_FETCHERS = {
   permanencia: async (reading) => {
     const pageHtml = await permanencia.fetchPage(reading.url);
     return permanencia.extractArticle(pageHtml).html;
+  },
+  escritas: async (reading) => {
+    const pageHtml = await escritas.fetchPage(reading.url);
+    return escritas.extractPoem(pageHtml).html;
   },
   link: async (reading) => {
     const pageHtml = await webpage.fetchPage(reading.url);

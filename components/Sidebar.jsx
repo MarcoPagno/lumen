@@ -12,6 +12,7 @@ import { useUser } from "hooks/useUser.js";
 const links = [
   { href: "/", label: "Hoje" },
   { href: "/leituras", label: "Leitura rápida", feature: "read:reading" },
+  { href: "/diario", label: "Diário", feature: "read:diary_entry:self" },
   {
     href: "/leituras/adicionar",
     label: "Adicionar leitura",

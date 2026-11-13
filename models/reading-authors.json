@@ -406,8 +406,129 @@
     "tone": "inspirador",
     "kind": "artigo",
     "lists": [
-      "https://permanencia.org.br/index.php/paginas/listar_artigos_corcao/45"
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar_artigos_corcao/45",
+        "name": "Gustavo Corção",
+        "area": "teologia"
+      }
     ],
     "article_pattern": "detalhar_gustavo_corcao/\\d+"
+  },
+  {
+    "slug": "revista-permanencia",
+    "name": "Revista Permanência",
+    "source": "permanencia",
+    "area": "teologia",
+    "tone": "inspirador",
+    "kind": "artigo",
+    "lists": [
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/2",
+        "name": "Apologética",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/4",
+        "name": "Teologia",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/5",
+        "name": "Filosofia",
+        "area": "filosofia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/6",
+        "name": "História",
+        "area": "historia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/7",
+        "name": "Crise da Igreja",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/8",
+        "name": "Família",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/9",
+        "name": "Espiritualidade",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/10",
+        "name": "Arte",
+        "area": "literatura"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/11",
+        "name": "Magistério da Igreja",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/12",
+        "name": "Pensamento",
+        "area": "filosofia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/13",
+        "name": "Política e Civilização",
+        "area": "filosofia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/14",
+        "name": "Sim Sim Não Não",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/15",
+        "name": "Livros on line",
+        "area": "teologia"
+      },
+      {
+        "url": "https://permanencia.org.br/index.php/paginas/listar/44",
+        "name": "Missa Tradicional",
+        "area": "teologia"
+      }
+    ],
+    "article_pattern": "/paginas/detalhar/\\d+$"
+  },
+  {
+    "slug": "carlos-drummond-de-andrade",
+    "name": "Carlos Drummond de Andrade",
+    "birth_year": 1902,
+    "death_year": 1987,
+    "wikipedia": "Carlos_Drummond_de_Andrade",
+    "source": "escritas",
+    "area": "literatura",
+    "tone": "inspirador",
+    "kind": "poema",
+    "escritas_slug": "carlos-drummond-de-andrade"
+  },
+  {
+    "slug": "manuel-bandeira",
+    "name": "Manuel Bandeira",
+    "birth_year": 1886,
+    "death_year": 1968,
+    "wikipedia": "Manuel_Bandeira",
+    "source": "escritas",
+    "area": "literatura",
+    "tone": "inspirador",
+    "kind": "poema",
+    "escritas_slug": "manuel-bandeira"
+  },
+  {
+    "slug": "bruno-tolentino",
+    "name": "Bruno Tolentino",
+    "birth_year": 1940,
+    "death_year": 2007,
+    "wikipedia": "Bruno_Tolentino",
+    "source": "escritas",
+    "area": "literatura",
+    "tone": "inspirador",
+    "kind": "poema",
+    "escritas_slug": "bruno-tolentino"
   }
 ]

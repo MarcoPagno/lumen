@@ -112,6 +112,7 @@ async function markReady(readingId, values) {
         part_total = $13,
         title = COALESCE($14, title),
         collection = COALESCE($15, collection),
+        author_id = COALESCE($16, author_id),
         updated_at = timezone('utc', now())
       WHERE id = $1
       RETURNING *;`,
@@ -131,6 +132,7 @@ async function markReady(readingId, values) {
       values.part_total ?? null,
       values.title ?? null,
       values.collection ?? null,
+      values.author_id ?? null,
     ],
   });
 

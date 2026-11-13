@@ -59,6 +59,7 @@ describe("/api/v1/readings/imports", () => {
         "wikisource",
         "vatican",
         "permanencia",
+        "escritas",
         "olavo",
       ]);
       expect(responseBody[0].stats).toEqual({
