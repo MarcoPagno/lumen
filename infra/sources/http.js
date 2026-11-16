@@ -25,10 +25,15 @@ function decode(bytes, charset) {
 function createClient({ minIntervalInMilliseconds = 0, retries = 3 } = {}) {
   let lastRequestAt = 0;
 
-  async function request(url, { accept, timeoutInMilliseconds = 20000 }) {
-    for (let attempt = 0; attempt <= retries; attempt++) {
+  async function request(
+    url,
+    { accept, timeoutInMilliseconds = 20000, interactive = false },
+  ) {
+    const maxAttempts = interactive ? 0 : retries;
+
+    for (let attempt = 0; attempt <= maxAttempts; attempt++) {
       const waitTime = lastRequestAt + minIntervalInMilliseconds - Date.now();
-      if (waitTime > 0) await sleep(waitTime);
+      if (waitTime > 0 && !interactive) await sleep(waitTime);
       lastRequestAt = Date.now();
 
       const response = await fetch(url, {
@@ -36,7 +41,7 @@ function createClient({ minIntervalInMilliseconds = 0, retries = 3 } = {}) {
         signal: AbortSignal.timeout(timeoutInMilliseconds),
       });
 
-      if (response.status === 429 || response.status >= 500) {
+      if (!interactive && (response.status === 429 || response.status >= 500)) {
         const retryAfter = Number(response.headers.get("retry-after"));
         await sleep((retryAfter || 5 * (attempt + 1)) * 1000);
         continue;
@@ -59,18 +64,20 @@ function createClient({ minIntervalInMilliseconds = 0, retries = 3 } = {}) {
     });
   }
 
-  async function getJson(url, { timeoutInMilliseconds } = {}) {
+  async function getJson(url, { timeoutInMilliseconds, interactive } = {}) {
     const response = await request(url, {
       accept: "application/json",
       timeoutInMilliseconds,
+      interactive,
     });
     return response.json();
   }
 
-  async function getHtml(url, { timeoutInMilliseconds } = {}) {
+  async function getHtml(url, { timeoutInMilliseconds, interactive } = {}) {
     const response = await request(url, {
       accept: "text/html",
       timeoutInMilliseconds,
+      interactive,
     });
     const bytes = new Uint8Array(await response.arrayBuffer());
     return decode(

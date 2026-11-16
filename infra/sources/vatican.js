@@ -42,8 +42,11 @@ function extractYear(text) {
   return match ? Number(match[1]) : null;
 }
 
-async function fetchPage(url) {
-  return await client.getHtml(url, { timeoutInMilliseconds: 30000 });
+async function fetchPage(url, { interactive = false } = {}) {
+  return await client.getHtml(url, {
+    timeoutInMilliseconds: interactive ? 10000 : 30000,
+    interactive,
+  });
 }
 
 async function discover(authorConfig) {

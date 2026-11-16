@@ -5,6 +5,17 @@ import activationModel from "models/activation.js";
 import webserver from "infra/webserver.js";
 import orchestrator from "tests/orchestrator.js";
 
+const KEEP_REAL_TIMERS = [
+  "nextTick",
+  "queueMicrotask",
+  "setImmediate",
+  "clearImmediate",
+  "setTimeout",
+  "clearTimeout",
+  "setInterval",
+  "clearInterval",
+];
+
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
   await orchestrator.clearDatabase();
@@ -33,6 +44,7 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
 
     test("returns 404 when token is expired", async () => {
       jest.useFakeTimers({
+        doNotFake: KEEP_REAL_TIMERS,
         now: new Date(Date.now() - sessionModel.EXPIRATION_IN_MILLISECONDS),
       });
 

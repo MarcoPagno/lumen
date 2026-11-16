@@ -43,15 +43,20 @@ async function remove(userId, readingId) {
   return { reading_id: rootId, is_favorite: false };
 }
 
-async function isFavorite(userId, readingId) {
-  const rootId = await findRootId(readingId);
-
+async function isFavorite(userId, reading) {
   const result = await database.query({
     text: `
-      SELECT 1 FROM reading_favorites
-      WHERE user_id = $1 AND reading_id = $2
+      SELECT 1
+      FROM reading_favorites
+      JOIN readings ON readings.id = reading_favorites.reading_id
+      WHERE
+        reading_favorites.user_id = $1
+        AND (
+          readings.id = $2
+          OR ($3::uuid IS NOT NULL AND readings.series_id = $3)
+        )
       LIMIT 1;`,
-    values: [userId, rootId],
+    values: [userId, reading.id, reading.series_id],
   });
 
   return result.rowCount > 0;
