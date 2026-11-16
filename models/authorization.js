@@ -196,6 +196,7 @@ function filterOutput(user, feature, resource) {
         themes: item.themes,
         year: item.year,
         excerpt: item.excerpt,
+        language: item.language,
         part_total: item.part_total,
         total_minutes: item.total_minutes,
         read_parts: item.read_parts,
@@ -214,6 +215,7 @@ function filterOutput(user, feature, resource) {
       kinds: resource.kinds,
       areas: resource.areas,
       sources: resource.sources,
+      languages: resource.languages,
     };
   }
 
@@ -241,10 +243,12 @@ function filterOutput(user, feature, resource) {
       tone: resource.tone,
       themes: resource.themes,
       year: resource.year,
+      language: resource.language,
       part_number: resource.part_number,
       part_total: resource.part_total,
       reason: resource.reason ?? null,
       is_favorite: resource.is_favorite ?? false,
+      next_part_id: resource.next_part_id ?? null,
       author: {
         name: resource.author_name,
         slug: resource.author_slug,
@@ -254,6 +258,15 @@ function filterOutput(user, feature, resource) {
         birth_year: resource.author_birth_year,
         death_year: resource.author_death_year,
       },
+    };
+  }
+
+  if (feature === "read:reading_log:self" && resource.likes) {
+    return {
+      signals: resource.signals,
+      confidence: resource.confidence,
+      likes: resource.likes,
+      dislikes: resource.dislikes,
     };
   }
 
@@ -340,6 +353,7 @@ function filterOutput(user, feature, resource) {
       author_name: resource.author_name,
       themes: resource.themes,
       subjects: resource.subjects,
+      cover_url: resource.cover_url,
       status: resource.status,
       created_at: resource.created_at,
       updated_at: resource.updated_at,

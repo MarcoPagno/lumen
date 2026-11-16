@@ -11,7 +11,9 @@ export default createRouter()
 async function getHandler(request, response) {
   const userTryingToGet = request.context.user;
 
-  const reading = await readingModel.findNextForUser(userTryingToGet.id);
+  const reading = await readingModel.findNextForUser(userTryingToGet.id, {
+    languages: request.query.languages,
+  });
 
   const secureOutputValues = authorizationModel.filterOutput(
     userTryingToGet,

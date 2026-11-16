@@ -60,7 +60,9 @@ describe("/api/v1/readings/imports", () => {
         "vatican",
         "permanencia",
         "escritas",
+        "wikiquote",
         "olavo",
+        "blogger",
       ]);
       expect(responseBody[0].stats).toEqual({
         pending: 0,

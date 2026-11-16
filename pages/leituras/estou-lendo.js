@@ -1,5 +1,8 @@
 import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import useSWR from "swr";
+import { BookCheck, BookOpen, RotateCcw } from "lucide-react";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -147,17 +150,20 @@ export default function EstouLendoPage() {
         <div className="text-muted-foreground">Carregando...</div>
       ) : (
         <>
+          {books.length === 0 && (
+            <p className="text-muted-foreground">
+              Nenhum livro cadastrado ainda.
+            </p>
+          )}
           <BookList
-            title="Lendo agora"
+            title={`Lendo agora (${readingBooks.length})`}
             books={readingBooks}
-            actionLabel="Terminei"
-            onAction={(book) => handleStatusChange(book, "finished")}
+            onStatusChange={handleStatusChange}
           />
           <BookList
-            title="Já lidos"
+            title={`Já lidos (${finishedBooks.length})`}
             books={finishedBooks}
-            actionLabel="Voltar a ler"
-            onAction={(book) => handleStatusChange(book, "reading")}
+            onStatusChange={handleStatusChange}
           />
         </>
       )}
@@ -165,34 +171,84 @@ export default function EstouLendoPage() {
   );
 }
 
-function BookList({ title, books, actionLabel, onAction }) {
+function BookList({ title, books, onStatusChange }) {
   if (books.length === 0) return null;
 
   return (
     <section className="flex flex-col gap-2">
       <h2 className="font-medium">{title}</h2>
       {books.map((book) => (
-        <div
-          key={book.id}
-          className="flex flex-col gap-2 rounded-2xl border border-border p-4"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-medium">{book.title}</p>
-              {book.author_name && (
-                <p className="text-sm text-muted-foreground">
-                  {book.author_name}
-                </p>
-              )}
-            </div>
-            <Button variant="outline" size="xs" onClick={() => onAction(book)}>
-              {actionLabel}
-            </Button>
-          </div>
-          <ThemeBadges themes={book.themes} />
-        </div>
+        <BookCard key={book.id} book={book} onStatusChange={onStatusChange} />
       ))}
     </section>
+  );
+}
+
+function BookCard({ book, onStatusChange }) {
+  const isReading = book.status === "reading";
+
+  return (
+    <div className="flex gap-4 rounded-2xl border border-border bg-card p-4">
+      {book.cover_url ? (
+        <Image
+          src={book.cover_url}
+          alt={book.title}
+          width={64}
+          height={96}
+          unoptimized
+          className="h-24 w-16 shrink-0 rounded-lg object-cover"
+        />
+      ) : (
+        <div className="flex h-24 w-16 shrink-0 items-center justify-center rounded-lg bg-muted">
+          <BookOpen className="size-6 text-muted-foreground" />
+        </div>
+      )}
+
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div>
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+              isReading
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-secondary-foreground"
+            }`}
+          >
+            {isReading ? "Lendo" : "Lido"}
+          </span>
+          <p className="mt-1 font-medium leading-snug">{book.title}</p>
+          {book.author_name && (
+            <p className="text-sm text-muted-foreground">{book.author_name}</p>
+          )}
+        </div>
+
+        <ThemeBadges themes={book.themes} />
+
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/leituras/biblioteca?book=${book.id}`}>
+              Leituras relacionadas
+            </Link>
+          </Button>
+          {isReading ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onStatusChange(book, "finished")}
+            >
+              <BookCheck /> Marcar como lido
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onStatusChange(book, "reading")}
+            >
+              <RotateCcw /> Voltar a ler
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

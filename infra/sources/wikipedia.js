@@ -1,13 +1,11 @@
 import http from "infra/sources/http.js";
 
-const SUMMARY_URL = "https://pt.wikipedia.org/api/rest_v1/page/summary/";
-
 const client = http.createClient({ minIntervalInMilliseconds: 300 });
 
-async function fetchSummary(pageTitle) {
+async function fetchSummary(pageTitle, lang = "pt") {
   try {
     const data = await client.getJson(
-      SUMMARY_URL + encodeURIComponent(pageTitle),
+      `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`,
       { timeoutInMilliseconds: 10000 },
     );
 

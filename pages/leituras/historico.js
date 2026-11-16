@@ -1,6 +1,7 @@
 import useSWR from "swr";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { ReadingMetaBadges, ThemeBadges } from "components/ReadingBadges.jsx";
+import ReadingProfile from "components/ReadingProfile.jsx";
 
 async function fetchAPI(key) {
   const response = await fetch(key);
@@ -48,6 +49,8 @@ export default function HistoricoPage() {
           {logs.length} leitura(s) · cerca de {totalMinutes} minutos lidos
         </p>
       </div>
+
+      <ReadingProfile />
 
       {logs.length === 0 && (
         <p className="text-muted-foreground">

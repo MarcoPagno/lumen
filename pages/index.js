@@ -4,6 +4,7 @@ import { BookOpen, Sun } from "lucide-react";
 import { Button } from "src/components/ui/button";
 import { ReadingMetaBadges } from "components/ReadingBadges.jsx";
 import DiaryForm from "components/DiaryForm.jsx";
+import { getNextReadingKey } from "utils/readings.js";
 import { useUser } from "hooks/useUser.js";
 
 const TYPE_LABELS = {
@@ -81,7 +82,7 @@ function Home() {
 }
 
 function QuickReadingCard() {
-  const { data, error, isLoading } = useSWR("/api/v1/readings/next", fetchAPI, {
+  const { data, error, isLoading } = useSWR(getNextReadingKey(), fetchAPI, {
     revalidateOnFocus: false,
   });
 

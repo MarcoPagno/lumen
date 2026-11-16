@@ -4,11 +4,13 @@ const SEARCH_URL = "https://openlibrary.org/search.json";
 
 const client = http.createClient({ retries: 0 });
 
-async function findSubjects(title, authorName) {
+const COVERS_URL = "https://covers.openlibrary.org/b/id/";
+
+async function findBookInfo(title, authorName) {
   const params = new URLSearchParams({
     title,
     limit: "1",
-    fields: "subject",
+    fields: "subject,cover_i",
   });
 
   if (authorName) {
@@ -19,14 +21,18 @@ async function findSubjects(title, authorName) {
     const data = await client.getJson(`${SEARCH_URL}?${params}`, {
       timeoutInMilliseconds: 5000,
     });
-    return (data.docs?.[0]?.subject ?? []).slice(0, 40);
+    const book = data.docs?.[0];
+    return {
+      subjects: (book?.subject ?? []).slice(0, 40),
+      cover_url: book?.cover_i ? `${COVERS_URL}${book.cover_i}-M.jpg` : null,
+    };
   } catch {
-    return [];
+    return { subjects: [], cover_url: null };
   }
 }
 
 const openlibrary = {
-  findSubjects,
+  findBookInfo,
 };
 
 export default openlibrary;

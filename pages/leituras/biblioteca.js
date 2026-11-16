@@ -6,9 +6,23 @@ import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import FavoriteButton from "components/FavoriteButton.jsx";
 import { ThemeBadges } from "components/ReadingBadges.jsx";
-import { AREA_LABELS, SOURCE_LABELS, THEMES } from "utils/readings.js";
+import {
+  AREA_LABELS,
+  LANGUAGE_LABELS,
+  SOURCE_LABELS,
+  THEMES,
+} from "utils/readings.js";
 
-const FILTER_KEYS = ["search", "author", "kind", "area", "theme", "status"];
+const FILTER_KEYS = [
+  "search",
+  "author",
+  "kind",
+  "area",
+  "theme",
+  "status",
+  "book",
+  "language",
+];
 
 const STATUS_OPTIONS = [
   { value: "", label: "Todos" },
@@ -72,6 +86,11 @@ export default function BibliotecaPage() {
   }
 
   const { data: facets } = useSWR("/api/v1/readings/facets", fetchAPI);
+  const { data: books } = useSWR(
+    filters?.book ? "/api/v1/books" : null,
+    fetchAPI,
+  );
+  const selectedBook = books?.find((book) => book.id === filters?.book);
 
   if (!filters) {
     return <div className="text-muted-foreground">Carregando...</div>;
@@ -85,6 +104,21 @@ export default function BibliotecaPage() {
           Todos os textos importados. Toque em um para ler.
         </p>
       </div>
+
+      {filters.book && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl bg-muted px-4 py-3 text-sm">
+          <span>
+            Relacionadas a <strong>{selectedBook?.title ?? "seu livro"}</strong>
+          </span>
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={() => updateFilter("book", "")}
+          >
+            Limpar
+          </Button>
+        </div>
+      )}
 
       <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4">
         <Input
@@ -137,6 +171,15 @@ export default function BibliotecaPage() {
             options={(facets?.areas ?? []).map((area) => ({
               value: area.value,
               label: `${AREA_LABELS[area.value] ?? area.value} (${area.count})`,
+            }))}
+          />
+          <FilterSelect
+            label="Idioma"
+            value={filters.language}
+            onChange={(value) => updateFilter("language", value)}
+            options={(facets?.languages ?? []).map((language) => ({
+              value: language.value,
+              label: `${LANGUAGE_LABELS[language.value] ?? language.value} (${language.count})`,
             }))}
           />
           <FilterSelect
@@ -254,6 +297,11 @@ function ReadingListItem({ item, onChange }) {
         />
       </div>
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
+        {item.language === "en" && (
+          <span className="rounded-full bg-secondary px-2.5 py-1 font-medium text-secondary-foreground">
+            EN
+          </span>
+        )}
         {item.kind && (
           <span className="rounded-full bg-secondary px-2.5 py-1 font-medium text-secondary-foreground">
             {item.kind}

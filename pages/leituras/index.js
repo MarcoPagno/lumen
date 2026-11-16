@@ -11,9 +11,13 @@ import { ReadingMetaBadges, ThemeBadges } from "components/ReadingBadges.jsx";
 import FavoriteButton from "components/FavoriteButton.jsx";
 import readingService from "services/readingService.js";
 import { parseApiError } from "utils/api.js";
-import { SOURCE_LABELS, getAuthorYears } from "utils/readings.js";
-
-const NEXT_READING_KEY = "/api/v1/readings/next";
+import {
+  SOURCE_LABELS,
+  getAuthorYears,
+  getNextReadingKey,
+  getReadingLanguages,
+  setIncludeEnglish,
+} from "utils/readings.js";
 
 export default function LeiturasPage() {
   const router = useRouter();
@@ -54,11 +58,12 @@ export default function LeiturasPage() {
     async ({ useCache = false } = {}) => {
       resetState();
 
-      const cachedNext = useCache ? cache.get(NEXT_READING_KEY)?.data : null;
+      const nextKey = getNextReadingKey();
+      const cachedNext = useCache ? cache.get(nextKey)?.data : null;
       let next = cachedNext;
 
       if (!next) {
-        const nextResponse = await readingService.getNext();
+        const nextResponse = await readingService.getNext(nextKey);
         if (nextResponse.status === 404) {
           setPhase("empty");
           return;
@@ -93,7 +98,7 @@ export default function LeiturasPage() {
     setReading((current) => ({ ...current, is_favorite: isFavorite }));
   }
 
-  async function handleLog(status) {
+  async function handleLog(status, { continueToNextPart = false } = {}) {
     setIsSaving(true);
     try {
       const response = await readingService.saveLog({
@@ -103,7 +108,11 @@ export default function LeiturasPage() {
         note: status === "read" ? note : null,
       });
       if (response.ok) {
-        cache.delete(NEXT_READING_KEY);
+        cache.delete(getNextReadingKey());
+        if (continueToNextPart && reading.next_part_id) {
+          router.push(`/leituras?id=${reading.next_part_id}`);
+          return;
+        }
         if (router.query.id) {
           router.replace("/leituras");
           return;
@@ -240,9 +249,20 @@ export default function LeiturasPage() {
           onChange={(event) => setNote(event.target.value)}
           placeholder="Uma nota ou trecho que marcou (opcional)"
         />
+        {reading.next_part_id && (
+          <Button
+            onClick={() => handleLog("read", { continueToNextPart: true })}
+            disabled={isSaving}
+          >
+            {isSaving
+              ? "Salvando..."
+              : `Li — continuar para a parte ${reading.part_number + 1} de ${reading.part_total}`}
+          </Button>
+        )}
         <div className="flex gap-2">
           <Button
             className="flex-1"
+            variant={reading.next_part_id ? "outline" : "default"}
             onClick={() => handleLog("read")}
             disabled={isSaving}
           >
@@ -266,6 +286,8 @@ export default function LeiturasPage() {
 
       <AuthorCard author={reading.author} />
 
+      <EnglishToggle />
+
       <Link
         href="/leituras/historico"
         className="text-center text-sm text-muted-foreground underline"
@@ -273,6 +295,31 @@ export default function LeiturasPage() {
         Ver minhas leituras
       </Link>
     </div>
+  );
+}
+
+function EnglishToggle() {
+  const [includeEnglish, setIncludeEnglishState] = useState(true);
+
+  useEffect(() => {
+    setIncludeEnglishState(getReadingLanguages().includes("en"));
+  }, []);
+
+  function handleChange(event) {
+    setIncludeEnglishState(event.target.checked);
+    setIncludeEnglish(event.target.checked);
+  }
+
+  return (
+    <label className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+      <input
+        type="checkbox"
+        checked={includeEnglish}
+        onChange={handleChange}
+        className="size-4"
+      />
+      Incluir textos em inglês nas recomendações
+    </label>
   );
 }
 

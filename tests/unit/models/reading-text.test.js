@@ -172,3 +172,68 @@ describe("readingText loose content", () => {
     expect(prepared.parts.length).toBeGreaterThan(1);
   });
 });
+
+describe("readingText.isPortuguese with english", () => {
+  test("rejects english sentences that share short words", () => {
+    expect(
+      readingText.isPortuguese(
+        "It's an ill wind as blows nobody no good, as I always say. And all's well as ends better!",
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("readingText.detectLanguage", () => {
+  test("detects portuguese and english", () => {
+    expect(
+      readingText.detectLanguage(
+        "A graça não destrói a natureza, mas a aperfeiçoa e eleva ao seu fim.",
+      ),
+    ).toBe("pt");
+    expect(
+      readingText.detectLanguage(
+        "Grace does not destroy nature but perfects it, and the intellect is ordered to the truth.",
+      ),
+    ).toBe("en");
+  });
+
+  test("returns null for text without clues", () => {
+    expect(readingText.detectLanguage("12345 !!!")).toBeNull();
+  });
+});
+
+describe("readingText english themes and language rules", () => {
+  test("detects themes using english terms", () => {
+    const themes = readingText.detectThemes(
+      "The Eucharist is the heart of the Mass. In Holy Communion we receive the Blessed Sacrament.",
+      { language: "en", minOccurrences: 1 },
+    );
+    expect(themes[0]).toBe("eucaristia");
+  });
+
+  test("prepare rejects texts in a different language than expected", () => {
+    const english =
+      "<p>The soul is the form of the body and the intellect is ordered to the truth of all things that exist.</p>".repeat(
+        3,
+      );
+    expect(readingText.prepare(english).rejected).toBe("wrong_language");
+    expect(readingText.prepare(english, { language: "en" }).language).toBe(
+      "en",
+    );
+    expect(readingText.prepare(english, { language: null }).language).toBe(
+      "en",
+    );
+  });
+});
+
+describe("readingText.prepare list pages", () => {
+  test("rejects table of contents made of plain list items", () => {
+    const items = Array.from(
+      { length: 20 },
+      (_, index) => `<li>Poema número ${index} da coleção de versos</li>`,
+    ).join("");
+    expect(readingText.prepare(`<ul>${items}</ul>`).rejected).toBe(
+      "index_page",
+    );
+  });
+});

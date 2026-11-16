@@ -18,6 +18,7 @@ function Badge({ children, variant = "secondary" }) {
 export function ReadingMetaBadges({ reading }) {
   return (
     <div className="flex flex-wrap gap-1.5">
+      {reading.language === "en" && <Badge>EN</Badge>}
       {reading.kind && <Badge>{reading.kind}</Badge>}
       {reading.area && (
         <Badge>{AREA_LABELS[reading.area] ?? reading.area}</Badge>

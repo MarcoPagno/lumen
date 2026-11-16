@@ -155,6 +155,20 @@ describe("GET /api/v1/readings", () => {
     }
   });
 
+  test("filters by language", async () => {
+    const { session } = await orchestrator.createUserActivateAndReturnSession();
+    const author = await orchestrator.createAuthor();
+    await orchestrator.createReading(author, { title: "Português" });
+    await orchestrator.createReading(author, {
+      title: "English",
+      language: "en",
+    });
+
+    const { body } = await listReadings(session, "language=en");
+    expect(body.items.map((item) => item.title)).toEqual(["English"]);
+    expect(body.items[0].language).toBe("en");
+  });
+
   test("filters by read status and favorites", async () => {
     const { session } = await orchestrator.createUserActivateAndReturnSession();
     const author = await orchestrator.createAuthor();
@@ -173,6 +187,39 @@ describe("GET /api/v1/readings", () => {
     expect(await titles("status=read")).toEqual(["Lido"]);
     expect(await titles("status=unread")).toEqual(["Favorito", "Não lido"]);
     expect(await titles("status=favorites")).toEqual(["Favorito"]);
+  });
+
+  test("filters readings related to a book, most related first", async () => {
+    const { user, session } =
+      await orchestrator.createUserActivateAndReturnSession();
+    const corcao = await orchestrator.createAuthor({ name: "Gustavo Corção" });
+    const other = await orchestrator.createAuthor({ name: "Outro" });
+    const book = await orchestrator.createBook(user, {
+      title: "O Século do Nada",
+      author_name: "Corção",
+      themes: ["igreja", "modernidade"],
+    });
+
+    await orchestrator.createReading(other, {
+      title: "Um tema",
+      themes: ["igreja"],
+    });
+    await orchestrator.createReading(other, {
+      title: "Dois temas",
+      themes: ["igreja", "modernidade"],
+    });
+    await orchestrator.createReading(corcao, { title: "Do autor" });
+    await orchestrator.createReading(other, {
+      title: "Sem relação",
+      themes: ["amor"],
+    });
+
+    const { body } = await listReadings(session, `book=${book.id}`);
+    expect(body.items.map((item) => item.title)).toEqual([
+      "Do autor",
+      "Dois temas",
+      "Um tema",
+    ]);
   });
 
   test("paginates results", async () => {
