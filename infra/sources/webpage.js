@@ -43,9 +43,10 @@ function validateUrl(rawUrl) {
   return url.toString();
 }
 
-async function fetchPage(url) {
+async function fetchPage(url, { interactive = false } = {}) {
   return await client.getHtml(validateUrl(url), {
-    timeoutInMilliseconds: 15000,
+    timeoutInMilliseconds: interactive ? 10000 : 15000,
+    interactive,
   });
 }
 

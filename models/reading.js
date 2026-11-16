@@ -221,21 +221,21 @@ async function findById(readingId) {
 
 async function findByIdWithContent(readingId) {
   const reading = await findById(readingId);
+  return { ...reading, content: await getContent(reading) };
+}
 
+async function getContent(reading) {
   if (reading.mode !== "live") {
-    return reading;
+    return reading.content;
   }
 
-  return {
-    ...reading,
-    content: await readingContent.fetchLiveContent(reading),
-  };
+  return await readingContent.fetchLiveContent(reading);
 }
 
 async function findNextForUser(userId) {
   const today = localDate.getTodayDateOnly();
 
-  const result = await database.query({
+  const queryPromise = database.query({
     text: `
       WITH
         active_books AS (
@@ -313,10 +313,11 @@ async function findNextForUser(userId) {
                   AND previous.part_number = readings.part_number - 1
               )
             )
-        )
-      SELECT
-        candidates.id,
-        (
+        ),
+        best AS (
+          SELECT
+            candidates.id,
+            (
           3 * candidates.shared_themes
           + CASE WHEN candidates.same_author THEN 4 ELSE 0 END
           + CASE WHEN candidates.part_number > 1 THEN 8 ELSE 0 END
@@ -329,13 +330,20 @@ async function findNextForUser(userId) {
               ELSE 0
             END
           + 3 * ('x' || substr(md5($1::text || $2 || candidates.id::text), 1, 8))::bit(32)::bigint / 4294967296.0
-        ) AS score
-      FROM candidates
-      LEFT JOIN author_feedback ON author_feedback.author_id = candidates.author_id
-      ORDER BY score DESC
-      LIMIT 1;`,
+            ) AS score
+          FROM candidates
+          LEFT JOIN author_feedback ON author_feedback.author_id = candidates.author_id
+          ORDER BY score DESC
+          LIMIT 1
+        )
+      ${SELECT_WITH_AUTHOR}
+      JOIN best ON best.id = readings.id;`,
     values: [userId, today],
   });
+  const [result, activeBooks] = await Promise.all([
+    queryPromise,
+    bookModel.findAllByUser(userId, { status: "reading" }),
+  ]);
 
   if (result.rowCount === 0) {
     throw new NotFoundError({
@@ -344,10 +352,7 @@ async function findNextForUser(userId) {
     });
   }
 
-  const reading = await findById(result.rows[0].id);
-  const activeBooks = await bookModel.findAllByUser(userId, {
-    status: "reading",
-  });
+  const reading = result.rows[0];
 
   return { ...reading, reason: getReason(reading, activeBooks) };
 }
@@ -546,6 +551,7 @@ const readingModel = {
   countRootsBySource,
   findById,
   findByIdWithContent,
+  getContent,
   findNextForUser,
   findAllForUser,
   findFacets,

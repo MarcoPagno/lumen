@@ -5,13 +5,15 @@ import webpage from "infra/sources/webpage.js";
 import escritas from "infra/sources/escritas.js";
 import readingText from "models/reading-text.js";
 
+const LIVE_OPTIONS = { interactive: true };
+
 const LIVE_FETCHERS = {
   olavo: async (reading) => {
     const postId = reading.external_id.split("#")[0];
     return await olavo.fetchPostContent(postId);
   },
   vatican: async (reading) => {
-    const pageHtml = await vatican.fetchPage(reading.url);
+    const pageHtml = await vatican.fetchPage(reading.url, LIVE_OPTIONS);
 
     if (vatican.isCatechismUrl(reading.url)) {
       const unitIndex = Number(/#u(\d+)$/.exec(reading.external_id)?.[1] ?? 0);
@@ -21,15 +23,15 @@ const LIVE_FETCHERS = {
     return vatican.extractDocumentHtml(pageHtml);
   },
   permanencia: async (reading) => {
-    const pageHtml = await permanencia.fetchPage(reading.url);
+    const pageHtml = await permanencia.fetchPage(reading.url, LIVE_OPTIONS);
     return permanencia.extractArticle(pageHtml).html;
   },
   escritas: async (reading) => {
-    const pageHtml = await escritas.fetchPage(reading.url);
+    const pageHtml = await escritas.fetchPage(reading.url, LIVE_OPTIONS);
     return escritas.extractPoem(pageHtml).html;
   },
   link: async (reading) => {
-    const pageHtml = await webpage.fetchPage(reading.url);
+    const pageHtml = await webpage.fetchPage(reading.url, LIVE_OPTIONS);
     return webpage.extractMain(pageHtml).html;
   },
 };

@@ -3,6 +3,17 @@ import orchestrator from "tests/orchestrator.js";
 import sessionModel from "models/session.js";
 import webserver from "infra/webserver.js";
 
+const KEEP_REAL_TIMERS = [
+  "nextTick",
+  "queueMicrotask",
+  "setImmediate",
+  "clearImmediate",
+  "setTimeout",
+  "clearTimeout",
+  "setInterval",
+  "clearInterval",
+];
+
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
   await orchestrator.clearDatabase();
@@ -30,6 +41,7 @@ describe("GET /api/v1/user", () => {
   describe("Authenticated user", () => {
     test("fails when session is already expired", async () => {
       jest.useFakeTimers({
+        doNotFake: KEEP_REAL_TIMERS,
         now: new Date(Date.now() - sessionModel.EXPIRATION_IN_MILLISECONDS),
       });
 
@@ -154,6 +166,7 @@ describe("GET /api/v1/user", () => {
 
     test("successfully with last second expiring session", async () => {
       jest.useFakeTimers({
+        doNotFake: KEEP_REAL_TIMERS,
         now: new Date(
           Date.now() - (sessionModel.EXPIRATION_IN_MILLISECONDS - 600),
         ),

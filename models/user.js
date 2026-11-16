@@ -1,5 +1,9 @@
 import database from "infra/database.js";
-import { ValidationError, NotFoundError } from "infra/errors.js";
+import {
+  ValidationError,
+  NotFoundError,
+  UnauthorizedError,
+} from "infra/errors.js";
 import passwordModel from "models/password.js";
 
 async function createNewUser(inputValues) {
@@ -44,6 +48,29 @@ async function findUserById(userId) {
       message: "User not found",
       action: "Verify the provided user ID and try again",
       status_code: 404,
+    });
+  }
+
+  return result.rows[0];
+}
+
+async function findUserByValidSessionToken(sessionToken) {
+  const result = await database.query({
+    text: `
+      SELECT users.*
+      FROM sessions
+      JOIN users ON users.id = sessions.user_id
+      WHERE
+        sessions.token = $1
+        AND sessions.expires_at > NOW()
+      LIMIT 1;`,
+    values: [sessionToken],
+  });
+
+  if (result.rowCount === 0) {
+    throw new UnauthorizedError({
+      message: "Invalid or expired session",
+      action: "Authenticate and try again",
     });
   }
 
@@ -246,6 +273,7 @@ async function addFeatures(userId, features) {
 const userModel = {
   createNewUser,
   findUserById,
+  findUserByValidSessionToken,
   findUserByUsername,
   findUserByEmail,
   updateUserByUsername,

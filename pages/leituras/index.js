@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useSWRConfig } from "swr";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button } from "src/components/ui/button";
 import { Textarea } from "src/components/ui/textarea";
@@ -12,8 +13,11 @@ import readingService from "services/readingService.js";
 import { parseApiError } from "utils/api.js";
 import { SOURCE_LABELS, getAuthorYears } from "utils/readings.js";
 
+const NEXT_READING_KEY = "/api/v1/readings/next";
+
 export default function LeiturasPage() {
   const router = useRouter();
+  const { cache } = useSWRConfig();
   const [phase, setPhase] = useState("loading");
   const [reading, setReading] = useState(null);
   const [reaction, setReaction] = useState(null);
@@ -31,6 +35,11 @@ export default function LeiturasPage() {
 
     setReading({ ...(await readingResponse.json()), reason });
     setPhase("reading");
+  }, []);
+
+  const showPreview = useCallback((summary) => {
+    setReading({ ...summary, content: null, isContentLoading: true });
+    setPhase("reading");
     window.scrollTo({ top: 0 });
   }, []);
 
@@ -41,23 +50,32 @@ export default function LeiturasPage() {
     setErrorMessage(null);
   }, []);
 
-  const loadNext = useCallback(async () => {
-    resetState();
+  const loadNext = useCallback(
+    async ({ useCache = false } = {}) => {
+      resetState();
 
-    const nextResponse = await readingService.getNext();
-    if (nextResponse.status === 404) {
-      setPhase("empty");
-      return;
-    }
-    if (!nextResponse.ok) {
-      setErrorMessage(await parseApiError(nextResponse));
-      setPhase("error");
-      return;
-    }
+      const cachedNext = useCache ? cache.get(NEXT_READING_KEY)?.data : null;
+      let next = cachedNext;
 
-    const next = await nextResponse.json();
-    await loadReading(next.id, next.reason);
-  }, [loadReading, resetState]);
+      if (!next) {
+        const nextResponse = await readingService.getNext();
+        if (nextResponse.status === 404) {
+          setPhase("empty");
+          return;
+        }
+        if (!nextResponse.ok) {
+          setErrorMessage(await parseApiError(nextResponse));
+          setPhase("error");
+          return;
+        }
+        next = await nextResponse.json();
+      }
+
+      showPreview(next);
+      await loadReading(next.id, next.reason);
+    },
+    [cache, loadReading, resetState, showPreview],
+  );
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -68,7 +86,7 @@ export default function LeiturasPage() {
       return;
     }
 
-    loadNext();
+    loadNext({ useCache: true });
   }, [router.isReady, router.query.id, loadNext, loadReading, resetState]);
 
   function handleFavoriteChange(isFavorite) {
@@ -85,6 +103,7 @@ export default function LeiturasPage() {
         note: status === "read" ? note : null,
       });
       if (response.ok) {
+        cache.delete(NEXT_READING_KEY);
         if (router.query.id) {
           router.replace("/leituras");
           return;
@@ -151,7 +170,11 @@ export default function LeiturasPage() {
         )}
       </header>
 
-      {reading.content ? (
+      {reading.isContentLoading ? (
+        <p className="animate-pulse text-muted-foreground">
+          Carregando texto...
+        </p>
+      ) : reading.content ? (
         <article
           className="prose prose-lg dark:prose-invert max-w-none font-serif"
           dangerouslySetInnerHTML={{ __html: reading.content }}

@@ -6,8 +6,11 @@ const MAX_PAGES = 120;
 
 const client = http.createClient({ minIntervalInMilliseconds: 1000 });
 
-async function fetchPage(url) {
-  return await client.getHtml(url, { timeoutInMilliseconds: 30000 });
+async function fetchPage(url, { interactive = false } = {}) {
+  return await client.getHtml(url, {
+    timeoutInMilliseconds: interactive ? 10000 : 30000,
+    interactive,
+  });
 }
 
 function cleanText(text) {

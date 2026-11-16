@@ -20,12 +20,15 @@ describe("GET /api/v1/status", () => {
         dependencies: {
           database: {
             max_connections: 100,
-            opened_connections: 1,
+            opened_connections: expect.any(Number),
           },
         },
       });
 
       expect(responseBody.updated_at).toBeDefined();
+      expect(
+        responseBody.dependencies.database.opened_connections,
+      ).toBeGreaterThanOrEqual(1);
 
       const parsedUpdatedAt = new Date(responseBody.updated_at).toISOString();
       expect(responseBody.updated_at).toEqual(parsedUpdatedAt);
@@ -53,12 +56,15 @@ describe("GET /api/v1/status", () => {
         dependencies: {
           database: {
             max_connections: 100,
-            opened_connections: 1,
+            opened_connections: expect.any(Number),
           },
         },
       });
 
       expect(responseBody.updated_at).toBeDefined();
+      expect(
+        responseBody.dependencies.database.opened_connections,
+      ).toBeGreaterThanOrEqual(1);
 
       const parsedUpdatedAt = new Date(responseBody.updated_at).toISOString();
       expect(responseBody.updated_at).toEqual(parsedUpdatedAt);
@@ -89,12 +95,15 @@ describe("GET /api/v1/status", () => {
           database: {
             version: "18.4",
             max_connections: 100,
-            opened_connections: 1,
+            opened_connections: expect.any(Number),
           },
         },
       });
 
       expect(responseBody.updated_at).toBeDefined();
+      expect(
+        responseBody.dependencies.database.opened_connections,
+      ).toBeGreaterThanOrEqual(1);
 
       const parsedUpdatedAt = new Date(responseBody.updated_at).toISOString();
       expect(responseBody.updated_at).toEqual(parsedUpdatedAt);

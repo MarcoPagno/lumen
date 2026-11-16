@@ -44,7 +44,7 @@ async function listPosts(page) {
 async function fetchPostContent(externalId) {
   const post = await client.getJson(
     `${API_URL}/${encodeURIComponent(externalId)}?_fields=content`,
-    { timeoutInMilliseconds: 10000 },
+    { timeoutInMilliseconds: 10000, interactive: true },
   );
   return post.content.rendered;
 }
