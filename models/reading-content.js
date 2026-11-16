@@ -3,6 +3,7 @@ import vatican from "infra/sources/vatican.js";
 import permanencia from "infra/sources/permanencia.js";
 import webpage from "infra/sources/webpage.js";
 import escritas from "infra/sources/escritas.js";
+import blogger from "infra/sources/blogger.js";
 import readingText from "models/reading-text.js";
 
 const LIVE_OPTIONS = { interactive: true };
@@ -25,6 +26,10 @@ const LIVE_FETCHERS = {
   permanencia: async (reading) => {
     const pageHtml = await permanencia.fetchPage(reading.url, LIVE_OPTIONS);
     return permanencia.extractArticle(pageHtml).html;
+  },
+  blogger: async (reading) => {
+    const blogUrl = `${new URL(reading.url).origin}/`;
+    return await blogger.fetchPostContent(blogUrl, reading.external_id);
   },
   escritas: async (reading) => {
     const pageHtml = await escritas.fetchPage(reading.url, LIVE_OPTIONS);

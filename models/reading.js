@@ -5,6 +5,7 @@ import readingText from "models/reading-text.js";
 import readingContent from "models/reading-content.js";
 import themes from "models/reading-themes.json";
 import bookModel from "models/book.js";
+import readingProfileModel from "models/reading-profile.js";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -59,9 +60,10 @@ async function insertProcessed(authorId, source, reading) {
       INSERT INTO readings (
         author_id, source, external_id, title, collection, url, mode, status,
         rejection_reason, content, excerpt, word_count, reading_minutes,
-        kind, area, tone, themes, year, series_id, part_number, part_total
+        kind, area, tone, themes, year, series_id, part_number, part_total,
+        language
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
       ON CONFLICT (source, external_id) DO NOTHING
       RETURNING *;`,
     values: [
@@ -86,6 +88,7 @@ async function insertProcessed(authorId, source, reading) {
       reading.series_id ?? null,
       reading.part_number ?? null,
       reading.part_total ?? null,
+      reading.language ?? "pt",
     ],
   });
 
@@ -113,6 +116,7 @@ async function markReady(readingId, values) {
         title = COALESCE($14, title),
         collection = COALESCE($15, collection),
         author_id = COALESCE($16, author_id),
+        language = COALESCE($17, language),
         updated_at = timezone('utc', now())
       WHERE id = $1
       RETURNING *;`,
@@ -133,6 +137,7 @@ async function markReady(readingId, values) {
       values.title ?? null,
       values.collection ?? null,
       values.author_id ?? null,
+      values.language ?? null,
     ],
   });
 
@@ -182,16 +187,32 @@ async function countBySource(source) {
   return stats;
 }
 
-async function countRootsBySource(source) {
+async function countRootsByAuthor(authorId, source) {
   const result = await database.query({
     text: `
       SELECT COUNT(*)::int AS count
       FROM readings
-      WHERE source = $1 AND (part_number IS NULL OR part_number = 1);`,
-    values: [source],
+      WHERE
+        author_id = $1
+        AND source = $2
+        AND (part_number IS NULL OR part_number = 1);`,
+    values: [authorId, source],
   });
 
   return result.rows[0].count;
+}
+
+async function findExistingExternalIds(source, externalIds) {
+  if (externalIds.length === 0) return [];
+
+  const result = await database.query({
+    text: `
+      SELECT external_id FROM readings
+      WHERE source = $1 AND external_id = ANY($2::text[]);`,
+    values: [source, externalIds],
+  });
+
+  return result.rows.map((row) => row.external_id);
 }
 
 async function findById(readingId) {
@@ -224,6 +245,21 @@ async function findByIdWithContent(readingId) {
   return { ...reading, content: await getContent(reading) };
 }
 
+async function findNextPartId(reading) {
+  if (!reading.series_id || !reading.part_number) return null;
+  if (reading.part_number >= reading.part_total) return null;
+
+  const result = await database.query({
+    text: `
+      SELECT id FROM readings
+      WHERE series_id = $1 AND part_number = $2 AND status = 'ready'
+      LIMIT 1;`,
+    values: [reading.series_id, reading.part_number + 1],
+  });
+
+  return result.rows[0]?.id ?? null;
+}
+
 async function getContent(reading) {
   if (reading.mode !== "live") {
     return reading.content;
@@ -232,10 +268,23 @@ async function getContent(reading) {
   return await readingContent.fetchLiveContent(reading);
 }
 
-async function findNextForUser(userId) {
-  const today = localDate.getTodayDateOnly();
+const LANGUAGES = ["pt", "en"];
 
-  const queryPromise = database.query({
+function parseLanguages(value) {
+  const languages = String(value ?? "")
+    .split(",")
+    .filter((language) => LANGUAGES.includes(language));
+  return languages.length > 0 ? languages : LANGUAGES;
+}
+
+async function findNextForUser(userId, { languages } = {}) {
+  const today = localDate.getTodayDateOnly();
+  const [profile, activeBooks] = await Promise.all([
+    readingProfileModel.findForUser(userId),
+    bookModel.findAllByUser(userId, { status: "reading" }),
+  ]);
+
+  const result = await database.query({
     text: `
       WITH
         active_books AS (
@@ -247,25 +296,13 @@ async function findNextForUser(userId) {
           SELECT COALESCE(array_agg(DISTINCT theme), '{}') AS themes
           FROM active_books, unnest(active_books.themes) AS theme
         ),
-        user_logs AS (
-          SELECT reading_logs.*, readings.author_id, readings.kind
+        recent AS (
+          SELECT readings.author_id, readings.kind
           FROM reading_logs
           JOIN readings ON readings.id = reading_logs.reading_id
-          WHERE reading_logs.user_id = $1
-        ),
-        recent AS (
-          SELECT author_id, kind
-          FROM user_logs
-          WHERE status = 'read'
-          ORDER BY created_at DESC
+          WHERE reading_logs.user_id = $1 AND reading_logs.status = 'read'
+          ORDER BY reading_logs.created_at DESC
           LIMIT 3
-        ),
-        author_feedback AS (
-          SELECT
-            author_id,
-            SUM(CASE reaction WHEN 'liked' THEN 1 WHEN 'disliked' THEN -1 ELSE 0 END) AS score
-          FROM user_logs
-          GROUP BY author_id
         ),
         candidates AS (
           SELECT
@@ -289,12 +326,20 @@ async function findNextForUser(userId) {
                   authors.name ILIKE '%' || active_books.author_name || '%'
                   OR active_books.author_name ILIKE '%' || authors.name || '%'
                 )
-            ) AS same_author
+            ) AS same_author,
+            (
+              SELECT COALESCE(SUM((($3::jsonb) ->> theme)::float), 0)
+              FROM unnest(readings.themes) AS theme
+            ) AS theme_preference,
+            COALESCE((($4::jsonb) ->> readings.author_id::text)::float, 0) AS author_preference,
+            COALESCE((($5::jsonb) ->> readings.kind)::float, 0) AS kind_preference,
+            COALESCE((($6::jsonb) ->> readings.area)::float, 0) AS area_preference
           FROM readings
           JOIN authors ON authors.id = readings.author_id
           CROSS JOIN active_themes
           WHERE
             readings.status = 'ready'
+            AND readings.language = ANY($7::text[])
             AND NOT EXISTS (
               SELECT 1 FROM reading_logs
               WHERE reading_logs.user_id = $1 AND reading_logs.reading_id = readings.id
@@ -318,32 +363,38 @@ async function findNextForUser(userId) {
           SELECT
             candidates.id,
             (
-          3 * candidates.shared_themes
-          + CASE WHEN candidates.same_author THEN 4 ELSE 0 END
-          + CASE WHEN candidates.part_number > 1 THEN 8 ELSE 0 END
-          + CASE WHEN candidates.source = 'link' THEN 5 ELSE 0 END
-          + 1.5 * LEAST(GREATEST(COALESCE(author_feedback.score, 0), -3), 3)
-          - CASE WHEN candidates.author_id IN (SELECT author_id FROM recent) THEN 3 ELSE 0 END
-          - CASE WHEN candidates.kind = (SELECT kind FROM recent LIMIT 1) THEN 1 ELSE 0 END
-          + CASE
-              WHEN candidates.active_themes_count = 0 AND candidates.tone IN ('leve', 'inspirador') THEN 1
-              ELSE 0
-            END
-          + 3 * ('x' || substr(md5($1::text || $2 || candidates.id::text), 1, 8))::bit(32)::bigint / 4294967296.0
+              3 * candidates.shared_themes
+              + CASE WHEN candidates.same_author THEN 4 ELSE 0 END
+              + CASE WHEN candidates.part_number > 1 THEN 8 ELSE 0 END
+              + CASE WHEN candidates.source = 'link' THEN 5 ELSE 0 END
+              + 2 * LEAST(GREATEST(candidates.theme_preference, -2), 2)
+              + 3 * candidates.author_preference
+              + 1.5 * candidates.kind_preference
+              + 1 * candidates.area_preference
+              - CASE WHEN candidates.author_id IN (SELECT author_id FROM recent) THEN 3 ELSE 0 END
+              - CASE WHEN candidates.kind = (SELECT kind FROM recent LIMIT 1) THEN 1 ELSE 0 END
+              + CASE
+                  WHEN candidates.active_themes_count = 0 AND candidates.tone IN ('leve', 'inspirador') THEN 1
+                  ELSE 0
+                END
+              + 3 * ('x' || substr(md5($1::text || $2 || candidates.id::text), 1, 8))::bit(32)::bigint / 4294967296.0
             ) AS score
           FROM candidates
-          LEFT JOIN author_feedback ON author_feedback.author_id = candidates.author_id
           ORDER BY score DESC
           LIMIT 1
         )
       ${SELECT_WITH_AUTHOR}
       JOIN best ON best.id = readings.id;`,
-    values: [userId, today],
+    values: [
+      userId,
+      today,
+      JSON.stringify(profile.themes),
+      JSON.stringify(profile.authors),
+      JSON.stringify(profile.kinds),
+      JSON.stringify(profile.areas),
+      parseLanguages(languages),
+    ],
   });
-  const [result, activeBooks] = await Promise.all([
-    queryPromise,
-    bookModel.findAllByUser(userId, { status: "reading" }),
-  ]);
 
   if (result.rowCount === 0) {
     throw new NotFoundError({
@@ -354,10 +405,10 @@ async function findNextForUser(userId) {
 
   const reading = result.rows[0];
 
-  return { ...reading, reason: getReason(reading, activeBooks) };
+  return { ...reading, reason: getReason(reading, activeBooks, profile) };
 }
 
-function getReason(reading, activeBooks) {
+function getReason(reading, activeBooks, profile) {
   if (reading.part_number > 1) {
     return `Continuação: parte ${reading.part_number} de ${reading.part_total}`;
   }
@@ -395,6 +446,22 @@ function getReason(reading, activeBooks) {
       .slice(0, 3)
       .map((slug) => themes.find((theme) => theme.slug === slug)?.name ?? slug);
     return `Relacionada a "${bestBook.book.title}": ${names.join(", ")}`;
+  }
+
+  if ((profile?.authors[reading.author_id] ?? 0) > 0.4) {
+    return `Você costuma gostar de ${reading.author_name}`;
+  }
+
+  const favoriteTheme = reading.themes
+    .map((slug) => ({ slug, score: profile?.themes[slug] ?? 0 }))
+    .filter((theme) => theme.score > 0.4)
+    .sort((a, b) => b.score - a.score)[0];
+
+  if (favoriteTheme) {
+    const name =
+      themes.find((theme) => theme.slug === favoriteTheme.slug)?.name ??
+      favoriteTheme.slug;
+    return `Porque você gosta de textos sobre ${name.toLowerCase()}`;
   }
 
   return null;
@@ -441,12 +508,31 @@ async function findAllForUser(userId, filters = {}) {
                 OR (readings.series_id IS NOT NULL AND parts.series_id = readings.series_id)
               )
           )::int AS read_parts,
-          reading_favorites.created_at AS favorited_at
+          reading_favorites.created_at AS favorited_at,
+          (
+            cardinality(ARRAY(
+              SELECT unnest(readings.themes)
+              INTERSECT
+              SELECT unnest(COALESCE(selected_book.themes, '{}'))
+            ))
+            + CASE
+                WHEN length(selected_book.author_name) > 3
+                  AND (
+                    authors.name ILIKE '%' || selected_book.author_name || '%'
+                    OR selected_book.author_name ILIKE '%' || authors.name || '%'
+                  )
+                THEN 3
+                ELSE 0
+              END
+          ) AS book_relevance
         FROM readings
         JOIN authors ON authors.id = readings.author_id
         LEFT JOIN reading_favorites
           ON reading_favorites.reading_id = readings.id
           AND reading_favorites.user_id = $1
+        LEFT JOIN books AS selected_book
+          ON selected_book.id = $11::uuid
+          AND selected_book.user_id = $1
         WHERE
           readings.status = 'ready'
           AND (readings.part_number IS NULL OR readings.part_number = 1)
@@ -463,16 +549,21 @@ async function findAllForUser(userId, filters = {}) {
           AND ($5::text IS NULL OR readings.area = $5)
           AND ($6::text IS NULL OR $6 = ANY(readings.themes))
           AND ($7::text IS NULL OR readings.source = $7)
+          AND ($12::text IS NULL OR readings.language = $12)
       )
       SELECT *, COUNT(*) OVER()::int AS total_count
       FROM roots
       WHERE
-        $8::text IS NULL
-        OR ($8 = 'favorites' AND favorited_at IS NOT NULL)
-        OR ($8 = 'read' AND read_parts >= parts)
-        OR ($8 = 'in_progress' AND read_parts > 0 AND read_parts < parts)
-        OR ($8 = 'unread' AND read_parts = 0)
+        ($11::uuid IS NULL OR book_relevance > 0)
+        AND (
+          $8::text IS NULL
+          OR ($8 = 'favorites' AND favorited_at IS NOT NULL)
+          OR ($8 = 'read' AND read_parts >= parts)
+          OR ($8 = 'in_progress' AND read_parts > 0 AND read_parts < parts)
+          OR ($8 = 'unread' AND read_parts = 0)
+        )
       ORDER BY
+        CASE WHEN $11::uuid IS NOT NULL THEN book_relevance END DESC NULLS LAST,
         CASE WHEN $8 = 'favorites' THEN favorited_at END DESC NULLS LAST,
         author_name,
         collection NULLS FIRST,
@@ -489,6 +580,8 @@ async function findAllForUser(userId, filters = {}) {
       status,
       LIST_PAGE_SIZE,
       (page - 1) * LIST_PAGE_SIZE,
+      UUID_REGEX.test(filters.book ?? "") ? filters.book : null,
+      LANGUAGES.includes(filters.language) ? filters.language : null,
     ],
   });
 
@@ -505,7 +598,7 @@ async function findFacets() {
     readings.status = 'ready'
     AND (readings.part_number IS NULL OR readings.part_number = 1)`;
 
-  const [authors, kinds, areas, sources] = await Promise.all([
+  const [authors, kinds, areas, sources, languages] = await Promise.all([
     database.query(`
       SELECT authors.slug, authors.name, COUNT(*)::int AS count
       FROM readings
@@ -531,6 +624,12 @@ async function findFacets() {
       WHERE ${rootsCondition}
       GROUP BY source
       ORDER BY count DESC;`),
+    database.query(`
+      SELECT language AS value, COUNT(*)::int AS count
+      FROM readings
+      WHERE ${rootsCondition}
+      GROUP BY language
+      ORDER BY count DESC;`),
   ]);
 
   return {
@@ -538,6 +637,7 @@ async function findFacets() {
     kinds: kinds.rows,
     areas: areas.rows,
     sources: sources.rows,
+    languages: languages.rows,
   };
 }
 
@@ -548,10 +648,12 @@ const readingModel = {
   markRejected,
   findPendingBatch,
   countBySource,
-  countRootsBySource,
+  countRootsByAuthor,
+  findExistingExternalIds,
   findById,
   findByIdWithContent,
   getContent,
+  findNextPartId,
   findNextForUser,
   findAllForUser,
   findFacets,

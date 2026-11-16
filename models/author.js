@@ -40,13 +40,47 @@ async function upsert(authorConfig, summary) {
   return result.rows[0];
 }
 
-async function markDiscovered(authorId) {
+async function markDiscovered(authorId, source) {
   await database.query({
     text: `
       UPDATE authors
-      SET discovered_at = timezone('utc', now()), updated_at = timezone('utc', now())
+      SET
+        discovered_at = timezone('utc', now()),
+        discovered_sources = array_append(
+          array_remove(discovered_sources, $2),
+          $2
+        ),
+        updated_at = timezone('utc', now())
       WHERE id = $1;`,
-    values: [authorId],
+    values: [authorId, source],
+  });
+}
+
+async function findAllWithReadingsFromSource(source) {
+  const result = await database.query({
+    text: `
+      SELECT DISTINCT authors.*
+      FROM authors
+      JOIN readings ON readings.author_id = authors.id
+      WHERE readings.source = $1;`,
+    values: [source],
+  });
+
+  return result.rows;
+}
+
+async function mergeInto(sourceAuthorId, targetAuthorId) {
+  await database.query({
+    text: `
+      UPDATE readings
+      SET author_id = $2, updated_at = timezone('utc', now())
+      WHERE author_id = $1;`,
+    values: [sourceAuthorId, targetAuthorId],
+  });
+
+  await database.query({
+    text: `DELETE FROM authors WHERE id = $1;`,
+    values: [sourceAuthorId],
   });
 }
 
@@ -54,6 +88,8 @@ const authorModel = {
   findBySlug,
   upsert,
   markDiscovered,
+  findAllWithReadingsFromSource,
+  mergeInto,
 };
 
 export default authorModel;

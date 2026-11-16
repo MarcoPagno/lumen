@@ -157,6 +157,32 @@ describe("GET /api/v1/readings/next", () => {
       expect(responseBody.reason).toBe('Do mesmo autor de "Lições de Abismo"');
     });
 
+    test("respects the chosen languages", async () => {
+      const { session } =
+        await orchestrator.createUserActivateAndReturnSession();
+      const author = await orchestrator.createAuthor();
+      const english = await orchestrator.createReading(author, {
+        language: "en",
+      });
+
+      const onlyPortuguese = await fetch(
+        `${webserver.origin}/api/v1/readings/next?languages=pt`,
+        { headers: { Cookie: `session_id=${session.token}` } },
+      );
+      expect(onlyPortuguese.status).toBe(404);
+
+      const withEnglish = await (
+        await fetch(
+          `${webserver.origin}/api/v1/readings/next?languages=pt,en`,
+          {
+            headers: { Cookie: `session_id=${session.token}` },
+          },
+        )
+      ).json();
+      expect(withEnglish.id).toBe(english.id);
+      expect(withEnglish.language).toBe("en");
+    });
+
     test("prefers readings added by the user", async () => {
       const { session } =
         await orchestrator.createUserActivateAndReturnSession();

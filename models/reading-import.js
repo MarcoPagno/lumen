@@ -1,10 +1,12 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { ValidationError } from "infra/errors.js";
 import wikisource from "infra/sources/wikisource.js";
 import olavo from "infra/sources/olavo.js";
 import vatican from "infra/sources/vatican.js";
 import permanencia from "infra/sources/permanencia.js";
 import escritas from "infra/sources/escritas.js";
+import wikiquote from "infra/sources/wikiquote.js";
+import blogger from "infra/sources/blogger.js";
 import webpage from "infra/sources/webpage.js";
 import wikipedia from "infra/sources/wikipedia.js";
 import authorModel from "models/author.js";
@@ -39,6 +41,7 @@ const SOURCES = {
     batchSize: 10,
     discover: permanencia.discover,
     process: processPermanencia,
+    fallbackAuthorSlug: "revista-permanencia",
   },
   escritas: {
     name: "Escritas.org",
@@ -47,17 +50,36 @@ const SOURCES = {
     discover: escritas.discover,
     process: processEscritas,
   },
+  wikiquote: {
+    name: "Wikiquote",
+    mode: "stored",
+    batchSize: 5,
+    discover: wikiquote.discover,
+    process: processWikiquote,
+  },
   olavo: {
     name: "olavodecarvalho.org",
     mode: "live",
-    importNext: importNextOlavo,
+    importNext: () => importNextPaged("olavo"),
+    listPosts: (authorConfig, offset) =>
+      olavo.listPosts(Math.floor(offset / olavo.PAGE_SIZE) + 1),
+    pageSize: olavo.PAGE_SIZE,
+  },
+  blogger: {
+    name: "Blogs (Blogger)",
+    mode: "live",
+    importNext: () => importNextPaged("blogger"),
+    listPosts: (authorConfig, offset) =>
+      blogger.listPosts(authorConfig.blog_url, offset + 1),
+    pageSize: blogger.PAGE_SIZE,
+    checkForNewPosts: true,
   },
 };
 
 const REJECTION_MESSAGES = {
   too_short: "The page has too little text to be a reading",
   index_page: "The page looks like a list of links, not a text",
-  not_portuguese: "The text does not seem to be in Portuguese",
+  wrong_language: "The text must be in Portuguese or English",
   too_long: "The text is too long to be split into quick readings",
 };
 
@@ -108,7 +130,10 @@ async function ensureAuthor(authorConfig) {
   if (existing?.bio) return existing;
 
   const summary = authorConfig.wikipedia
-    ? await wikipedia.fetchSummary(authorConfig.wikipedia)
+    ? await wikipedia.fetchSummary(
+        authorConfig.wikipedia,
+        authorConfig.wikipedia_lang,
+      )
     : null;
   return await authorModel.upsert(authorConfig, summary);
 }
@@ -117,9 +142,14 @@ async function importNextFromSource(source) {
   const sourceConfig = SOURCES[source];
   const configs = authorsConfig.filter((author) => author.source === source);
 
+  if (sourceConfig.fallbackAuthorSlug) {
+    await cleanupInvalidAuthors(source, sourceConfig.fallbackAuthorSlug);
+  }
+
   for (const authorConfig of configs) {
     const author = await ensureAuthor(authorConfig);
-    if (author.discovered_at) continue;
+    const discoveryKey = getDiscoveryKey(source, authorConfig);
+    if (author.discovered_sources?.includes(discoveryKey)) continue;
 
     const candidates = await sourceConfig.discover(authorConfig);
     const discovered = await readingModel.insertCandidates(
@@ -128,7 +158,7 @@ async function importNextFromSource(source) {
       candidates,
       { mode: sourceConfig.mode },
     );
-    await authorModel.markDiscovered(author.id);
+    await authorModel.markDiscovered(author.id, discoveryKey);
 
     return {
       step: "discover",
@@ -169,6 +199,26 @@ async function importNextFromSource(source) {
     rejected,
     done: batch.length < sourceConfig.batchSize,
   };
+}
+
+function getDiscoveryKey(source, authorConfig) {
+  const discoveryConfig = {
+    pages: authorConfig.pages,
+    prefixes: authorConfig.prefixes,
+    categories: authorConfig.categories,
+    quote_pages: authorConfig.quote_pages,
+    lists: authorConfig.lists,
+    indexes: authorConfig.indexes,
+    documents: authorConfig.documents,
+    catechism: authorConfig.catechism,
+    escritas_slug: authorConfig.escritas_slug,
+    wikisource_lang: authorConfig.wikisource_lang,
+  };
+  const hash = createHash("md5")
+    .update(JSON.stringify(discoveryConfig))
+    .digest("hex")
+    .slice(0, 10);
+  return `${source}:${hash}`;
 }
 
 async function saveItems(pending, result, mode) {
@@ -221,7 +271,8 @@ async function processWikisource(pending, authorConfig) {
   const page = await wikisource.fetchPage(pending.external_id);
   if (!page) return { rejected: "not_found" };
 
-  const prepared = readingText.prepare(page.html);
+  const language = authorConfig?.language ?? "pt";
+  const prepared = readingText.prepare(page.html, { language });
   if (prepared.rejected) return prepared;
 
   return {
@@ -234,7 +285,8 @@ async function processWikisource(pending, authorConfig) {
         (wikisource.isChapterTitle(pending.external_id) ? "capítulo" : "texto"),
       area: authorConfig?.area ?? "literatura",
       tone: authorConfig?.tone ?? null,
-      themes: readingText.detectThemes(prepared.text),
+      language,
+      themes: readingText.detectThemes(prepared.text, { language }),
     },
   };
 }
@@ -308,6 +360,43 @@ async function processPermanencia(pending, authorConfig) {
   };
 }
 
+async function processWikiquote(pending, authorConfig) {
+  const { lang: language } = wikiquote.parseExternalId(pending.external_id);
+  const pageHtml = await wikiquote.fetchPage(pending.external_id);
+  if (!pageHtml) return { rejected: "not_found" };
+
+  const quotes = wikiquote
+    .extractQuotes(pageHtml)
+    .filter((quote) => readingText.detectLanguage(quote.text) === language);
+  if (quotes.length < 3) return { rejected: "too_short" };
+
+  const groups = wikiquote.groupQuotes(quotes);
+  const items = groups.map((groupHtml, index) => {
+    const measured = readingText.measure(readingText.sanitizeHtml(groupHtml));
+    return {
+      ...measured,
+      title:
+        groups.length > 1 ? `${pending.title} (${index + 1})` : pending.title,
+      themes: readingText.detectThemes(measured.text, {
+        minOccurrences: 1,
+        language,
+      }),
+    };
+  });
+
+  return {
+    items,
+    isSeries: false,
+    classification: {
+      kind: "pensamentos",
+      area: authorConfig?.area ?? "filosofia",
+      tone: authorConfig?.tone ?? "inspirador",
+      language,
+      themes: [],
+    },
+  };
+}
+
 async function processEscritas(pending, authorConfig) {
   const poem = escritas.extractPoem(
     await escritas.fetchPage(pending.url),
@@ -333,12 +422,32 @@ async function processEscritas(pending, authorConfig) {
   };
 }
 
+async function cleanupInvalidAuthors(source, fallbackAuthorSlug) {
+  const configuredSlugs = new Set(authorsConfig.map((author) => author.slug));
+  const fallbackAuthor = await ensureAuthor(
+    authorsConfig.find((author) => author.slug === fallbackAuthorSlug),
+  );
+
+  const authors = await authorModel.findAllWithReadingsFromSource(source);
+  let cleaned = 0;
+
+  for (const author of authors) {
+    if (configuredSlugs.has(author.slug)) continue;
+    if (permanencia.isPlausibleAuthorName(author.name)) continue;
+
+    await authorModel.mergeInto(author.id, fallbackAuthor.id);
+    cleaned++;
+  }
+
+  return cleaned;
+}
+
 async function ensureAuthorByName(rawName) {
   const name = rawName
     .split(/\s+-\s+|[,(–—]/)[0]
     .replace(/^(por|by)\s+/i, "")
     .trim();
-  if (name.length < 4 || name.length > 60) return null;
+  if (!permanencia.isPlausibleAuthorName(name)) return null;
 
   const slug = slugify(name);
   const existing = await authorModel.findBySlug(slug);
@@ -350,22 +459,41 @@ async function ensureAuthorByName(rawName) {
   return await authorModel.upsert({ slug, name }, isRelevant ? summary : null);
 }
 
-async function importNextOlavo() {
-  const authorConfig = authorsConfig.find(
-    (author) => author.source === "olavo",
-  );
-  const author = await ensureAuthor(authorConfig);
+async function importNextPaged(source) {
+  const sourceConfig = SOURCES[source];
+  const configs = authorsConfig.filter((author) => author.source === source);
 
-  const total = await readingModel.countRootsBySource("olavo");
-  const page = Math.floor(total / olavo.PAGE_SIZE) + 1;
-  const posts = await olavo.listPosts(page);
+  for (const authorConfig of configs) {
+    const author = await ensureAuthor(authorConfig);
+    const total = await readingModel.countRootsByAuthor(author.id, source);
+    let posts = await sourceConfig.listPosts(authorConfig, total);
 
+    if (posts.length === 0 && sourceConfig.checkForNewPosts) {
+      const latest = await sourceConfig.listPosts(authorConfig, 0);
+      const existing = await readingModel.findExistingExternalIds(
+        source,
+        latest.map((post) => post.external_id),
+      );
+      posts = latest.filter((post) => !existing.includes(post.external_id));
+    }
+
+    if (posts.length === 0) continue;
+
+    const result = await savePosts(source, author, authorConfig, posts);
+    return { step: "fetch", ...result, done: false };
+  }
+
+  return { step: "fetch", processed: 0, ready: 0, rejected: 0, done: true };
+}
+
+async function savePosts(source, author, authorConfig, posts) {
+  const language = authorConfig.language ?? "pt";
   let ready = 0;
   let rejected = 0;
 
   for (const post of posts) {
     const prepared = post.is_from_site
-      ? readingText.prepare(post.html)
+      ? readingText.prepare(post.html, { language })
       : { rejected: "external_link" };
 
     const baseReading = {
@@ -374,10 +502,11 @@ async function importNextOlavo() {
       url: post.url,
       year: post.year,
       mode: "live",
+      language,
     };
 
     if (prepared.rejected) {
-      await readingModel.insertProcessed(author.id, "olavo", {
+      await readingModel.insertProcessed(author.id, source, {
         ...baseReading,
         status: "rejected",
         rejection_reason: prepared.rejected,
@@ -389,10 +518,10 @@ async function importNextOlavo() {
     const { parts } = prepared;
     const isSeries = parts.length > 1;
     const seriesId = isSeries ? randomUUID() : null;
-    const themes = readingText.detectThemes(prepared.text);
+    const postThemes = readingText.detectThemes(prepared.text, { language });
 
     for (const [index, part] of parts.entries()) {
-      await readingModel.insertProcessed(author.id, "olavo", {
+      await readingModel.insertProcessed(author.id, source, {
         ...baseReading,
         external_id:
           index === 0 ? post.external_id : `${post.external_id}#${index + 1}`,
@@ -403,7 +532,7 @@ async function importNextOlavo() {
         kind: authorConfig.kind,
         area: authorConfig.area,
         tone: authorConfig.tone,
-        themes,
+        themes: postThemes,
         series_id: seriesId,
         part_number: isSeries ? index + 1 : null,
         part_total: isSeries ? parts.length : null,
@@ -412,13 +541,7 @@ async function importNextOlavo() {
     ready++;
   }
 
-  return {
-    step: "fetch",
-    processed: posts.length,
-    ready,
-    rejected,
-    done: posts.length < olavo.PAGE_SIZE,
-  };
+  return { processed: posts.length, ready, rejected };
 }
 
 async function addLink(inputValues) {
@@ -436,6 +559,7 @@ async function addLink(inputValues) {
 
   const prepared = readingText.prepare(page.html, {
     maxParts: DOCUMENT_MAX_PARTS,
+    language: null,
   });
 
   if (prepared.rejected) {
@@ -455,7 +579,9 @@ async function addLink(inputValues) {
       : null,
   });
 
-  const textThemes = readingText.detectThemes(prepared.text);
+  const textThemes = readingText.detectThemes(prepared.text, {
+    language: prepared.language,
+  });
   const isSeries = prepared.parts.length > 1;
   const seriesId = isSeries ? randomUUID() : null;
   let firstReading;
@@ -471,6 +597,7 @@ async function addLink(inputValues) {
       word_count: part.wordCount,
       reading_minutes: part.readingMinutes,
       kind: "artigo",
+      language: prepared.language,
       area: getMainArea(textThemes),
       themes: textThemes,
       series_id: seriesId,
@@ -529,6 +656,7 @@ const readingImportModel = {
   importNext,
   importAll,
   getStatus,
+  cleanupInvalidAuthors,
   addLink,
 };
 

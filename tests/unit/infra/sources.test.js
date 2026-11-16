@@ -3,6 +3,9 @@ import permanencia from "infra/sources/permanencia.js";
 import webpage from "infra/sources/webpage.js";
 import escritas from "infra/sources/escritas.js";
 import hablarcondios from "infra/sources/hablarcondios.js";
+import wikiquote from "infra/sources/wikiquote.js";
+import blogger from "infra/sources/blogger.js";
+import wikisource from "infra/sources/wikisource.js";
 import readingText from "models/reading-text.js";
 
 const LONG_PARAGRAPH =
@@ -212,5 +215,124 @@ describe("hablarcondios.extractMeditation", () => {
 
   test("returns null when the page has no article", () => {
     expect(hablarcondios.extractMeditation("<div>Erro</div>")).toBeNull();
+  });
+});
+
+describe("permanencia.isPlausibleAuthorName", () => {
+  test("accepts real author bylines", () => {
+    for (const name of [
+      "Dom Lourenço Fleichman, OSB",
+      "Pe. François-Marie Chautard",
+      "D. José Pereira Alves",
+      "Irmãs da FSSPX",
+      "Gustavo Corção",
+      "Jean Madiran",
+    ]) {
+      expect(permanencia.isPlausibleAuthorName(name)).toBe(true);
+    }
+  });
+
+  test("rejects titles, liturgical days and notes", () => {
+    for (const name of [
+      "4O domingo do advento",
+      "Domingo de Páscoa",
+      "LEIA A CONTINUAÇÃO",
+      "relendo textos antigos sobre a família",
+      "si si no no",
+      "Si Si No No",
+      "Revista Permanência",
+      "Sexta-feira Santa",
+    ]) {
+      expect(permanencia.isPlausibleAuthorName(name)).toBe(false);
+    }
+  });
+});
+
+describe("wikiquote.extractQuotes", () => {
+  const page = `
+    <div class="mw-parser-output">
+      <div class="mw-heading mw-heading2"><h2>Atribuídas</h2></div>
+      <div class="mw-heading mw-heading3"><h3>Verificadas</h3></div>
+      <ul><li>A esperança é o sonho do homem acordado, e a ela devemos muito.</li></ul>
+      <div class="mw-heading mw-heading3"><h3>Metafísica</h3></div>
+      <ul><li>Todos os homens, por natureza, desejam o conhecimento das coisas.
+        <ul><li>Livro I, 980a</li></ul></li></ul>
+      <ul><li>Curta.</li></ul>
+      <div class="mw-heading mw-heading2"><h2>Sobre Aristóteles</h2></div>
+      <ul><li>Aristóteles foi o mestre de todos os que sabem, disse o poeta.</li></ul>
+    </div>`;
+
+  test("extracts quotes with sources and skips quotes about the author", () => {
+    expect(wikiquote.extractQuotes(page)).toEqual([
+      {
+        text: "A esperança é o sonho do homem acordado, e a ela devemos muito.",
+        source: null,
+      },
+      {
+        text: "Todos os homens, por natureza, desejam o conhecimento das coisas.",
+        source: "Livro I, 980a",
+      },
+    ]);
+  });
+
+  test("groups quotes escaping html", () => {
+    const [html] = wikiquote.groupQuotes([
+      { text: "Se a < b então <script>", source: "Fonte" },
+    ]);
+    expect(html).toBe(
+      "<blockquote><p>Se a &lt; b então &lt;script&gt;</p><p><em>— Fonte</em></p></blockquote>",
+    );
+  });
+});
+
+describe("blogger.toPost", () => {
+  test("normalizes a blogger feed entry", () => {
+    const post = blogger.toPost(
+      {
+        id: { $t: "tag:blogger.com,1999:blog-123.post-456" },
+        title: { $t: " Aquinas on the soul " },
+        published: { $t: "2024-05-01T10:00:00.000-07:00" },
+        content: { $t: "<p>Text</p>" },
+        link: [
+          {
+            rel: "alternate",
+            href: "https://edwardfeser.blogspot.com/2024/05/aquinas.html",
+          },
+        ],
+      },
+      "https://edwardfeser.blogspot.com/",
+    );
+
+    expect(post).toEqual({
+      external_id: "edwardfeser.blogspot.com:456",
+      title: "Aquinas on the soul",
+      url: "https://edwardfeser.blogspot.com/2024/05/aquinas.html",
+      year: 2024,
+      html: "<p>Text</p>",
+      is_from_site: true,
+    });
+  });
+});
+
+describe("language prefixes in external ids", () => {
+  test("wikisource keeps portuguese ids without prefix", () => {
+    expect(wikisource.parseExternalId("Dom Casmurro/I")).toEqual({
+      lang: "pt",
+      title: "Dom Casmurro/I",
+    });
+    expect(
+      wikisource.parseExternalId("en:Leaves of Grass (1882)/Song of Myself"),
+    ).toEqual({ lang: "en", title: "Leaves of Grass (1882)/Song of Myself" });
+  });
+
+  test("wikiquote supports portuguese and english pages", () => {
+    expect(wikiquote.parseExternalId("wikiquote:Aristóteles")).toEqual({
+      lang: "pt",
+      page: "Aristóteles",
+    });
+    expect(wikiquote.parseExternalId("wikiquote:en:Fulton J. Sheen")).toEqual({
+      lang: "en",
+      page: "Fulton J. Sheen",
+    });
   });
 });

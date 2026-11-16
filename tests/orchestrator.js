@@ -151,6 +151,7 @@ async function createReading(author, readingObject) {
       series_id: readingObject?.series_id ?? null,
       part_number: readingObject?.part_number ?? null,
       part_total: readingObject?.part_total ?? null,
+      language: readingObject?.language ?? "pt",
     },
   );
 }

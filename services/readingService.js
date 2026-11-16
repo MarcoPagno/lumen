@@ -1,5 +1,5 @@
-async function getNext() {
-  const response = await fetch("/api/v1/readings/next");
+async function getNext(key) {
+  const response = await fetch(key);
   return response;
 }
 

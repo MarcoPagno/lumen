@@ -71,6 +71,56 @@ const PORTUGUESE_STOPWORDS = new Set([
   "mais",
 ]);
 
+const ENGLISH_STOPWORDS = new Set([
+  "the",
+  "and",
+  "of",
+  "to",
+  "is",
+  "it",
+  "that",
+  "you",
+  "i",
+  "be",
+  "was",
+  "for",
+  "with",
+  "not",
+  "this",
+  "but",
+  "have",
+  "we",
+  "they",
+  "he",
+  "my",
+  "your",
+  "all",
+  "in",
+  "on",
+  "are",
+  "his",
+  "her",
+  "which",
+  "from",
+  "by",
+  "at",
+  "their",
+  "what",
+  "who",
+  "an",
+  "or",
+  "if",
+  "would",
+  "were",
+  "been",
+  "had",
+  "has",
+  "its",
+  "them",
+  "than",
+  "when",
+]);
+
 function escapeHtml(text) {
   return text
     .replace(/&/g, "&amp;")
@@ -163,6 +213,18 @@ function getLinkDensity(html) {
   return linksLength / totalLength;
 }
 
+function getListDensity(html) {
+  const root = parse(html);
+  const totalLength = root.text.trim().length;
+  if (totalLength === 0) return 0;
+
+  const listLength = root
+    .querySelectorAll("li")
+    .reduce((sum, item) => sum + item.text.trim().length, 0);
+
+  return listLength / totalLength;
+}
+
 function toPlainText(html) {
   return parse(html).text.replace(/\s+/g, " ").trim();
 }
@@ -181,14 +243,34 @@ function getExcerpt(text, length = 280) {
   return `${cut.slice(0, cut.lastIndexOf(" "))}…`;
 }
 
-function isPortuguese(text) {
+function detectLanguage(text) {
   const words = normalize(text)
     .split(/[^\p{L}]+/u)
     .filter(Boolean);
-  if (words.length === 0) return false;
+  if (words.length === 0) return null;
 
-  const stopwords = words.filter((word) => PORTUGUESE_STOPWORDS.has(word));
-  return stopwords.length / words.length > 0.12;
+  const portuguese = words.filter((word) => PORTUGUESE_STOPWORDS.has(word));
+  const english = words.filter((word) => ENGLISH_STOPWORDS.has(word));
+
+  if (
+    portuguese.length / words.length > 0.12 &&
+    portuguese.length > english.length
+  ) {
+    return "pt";
+  }
+
+  if (
+    english.length / words.length > 0.08 &&
+    english.length > portuguese.length
+  ) {
+    return "en";
+  }
+
+  return null;
+}
+
+function isPortuguese(text) {
+  return detectLanguage(text) === "pt";
 }
 
 function countTermOccurrences(normalizedText, term) {
@@ -205,7 +287,16 @@ function escapeRegExp(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function detectThemes(text, { minOccurrences, limit = 5, subjects = [] } = {}) {
+function getThemeTerms(theme, language) {
+  if (language === "en") return theme.terms_en;
+  if (language === "any") return [...theme.terms, ...theme.terms_en];
+  return theme.terms;
+}
+
+function detectThemes(
+  text,
+  { minOccurrences, limit = 5, subjects = [], language = "pt" } = {},
+) {
   const normalizedText = normalize(text);
   const normalizedSubjects = normalize(subjects.join(" | "));
   const threshold =
@@ -214,7 +305,7 @@ function detectThemes(text, { minOccurrences, limit = 5, subjects = [] } = {}) {
 
   return themes
     .map((theme) => {
-      const termCount = theme.terms.reduce(
+      const termCount = getThemeTerms(theme, language).reduce(
         (sum, term) => sum + countTermOccurrences(normalizedText, term),
         0,
       );
@@ -234,7 +325,8 @@ function detectKind(categories = [], html = "") {
   const joined = normalize(categories.join(" | "));
 
   if (/sermo|sermao|sermoes/.test(joined)) return "sermão";
-  if (/soneto|poema|poesia|poesias|versos/.test(joined)) return "poema";
+  if (/soneto|poema|poesia|poesias|versos|poems?\b|poetry/.test(joined))
+    return "poema";
   if (/conto/.test(joined)) return "conto";
   if (/cronica/.test(joined)) return "crônica";
   if (/carta/.test(joined)) return "carta";
@@ -304,6 +396,7 @@ function prepare(
     allowSplit = true,
     maxMinutes = MAX_READING_MINUTES,
     maxParts = MAX_PARTS,
+    language = "pt",
   } = {},
 ) {
   const linkDensity = getLinkDensity(rawHtml);
@@ -315,18 +408,23 @@ function prepare(
     return { rejected: "too_short" };
   }
 
-  if (linkDensity > 0.4) {
+  if (linkDensity > 0.4 || getListDensity(html) > 0.6) {
     return { rejected: "index_page" };
   }
 
-  if (!isPortuguese(text)) {
-    return { rejected: "not_portuguese" };
+  const detectedLanguage = detectLanguage(text);
+  if (!detectedLanguage || (language && detectedLanguage !== language)) {
+    return { rejected: "wrong_language" };
   }
 
   const readingMinutes = getReadingMinutes(wordCount);
 
   if (readingMinutes <= maxMinutes) {
-    return { parts: [{ html, text, wordCount, readingMinutes }], text };
+    return {
+      parts: [{ html, text, wordCount, readingMinutes }],
+      text,
+      language: detectedLanguage,
+    };
   }
 
   if (!allowSplit) {
@@ -339,7 +437,7 @@ function prepare(
     return { rejected: "too_long" };
   }
 
-  return { parts, text };
+  return { parts, text, language: detectedLanguage };
 }
 
 const readingText = {
@@ -352,6 +450,7 @@ const readingText = {
   getReadingMinutes,
   getExcerpt,
   isPortuguese,
+  detectLanguage,
   detectThemes,
   detectKind,
   splitIntoParts,

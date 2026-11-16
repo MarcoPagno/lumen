@@ -61,10 +61,12 @@ describe("GET /api/v1/readings/[reading_id]", () => {
         tone: "leve",
         themes: ["morte"],
         year: null,
+        language: "pt",
         part_number: null,
         part_total: null,
         reason: null,
         is_favorite: false,
+        next_part_id: null,
         author: {
           name: "Alphonsus de Guimaraens",
           slug: author.slug,
@@ -75,6 +77,33 @@ describe("GET /api/v1/readings/[reading_id]", () => {
           death_year: 1921,
         },
       });
+    });
+
+    test("returns the next part of a series", async () => {
+      const { session } =
+        await orchestrator.createUserActivateAndReturnSession();
+      const author = await orchestrator.createAuthor();
+      const seriesId = "11111111-1111-4111-8111-111111111111";
+      const partOne = await orchestrator.createReading(author, {
+        series_id: seriesId,
+        part_number: 1,
+        part_total: 2,
+      });
+      const partTwo = await orchestrator.createReading(author, {
+        series_id: seriesId,
+        part_number: 2,
+        part_total: 2,
+      });
+
+      const get = async (id) =>
+        await (
+          await fetch(`${webserver.origin}/api/v1/readings/${id}`, {
+            headers: { Cookie: `session_id=${session.token}` },
+          })
+        ).json();
+
+      expect((await get(partOne.id)).next_part_id).toBe(partTwo.id);
+      expect((await get(partTwo.id)).next_part_id).toBeNull();
     });
 
     test("returns 404 for a reading that does not exist", async () => {

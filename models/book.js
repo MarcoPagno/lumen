@@ -16,10 +16,14 @@ async function create(userId, inputValues) {
   const title = inputValues.title.trim();
   const authorName = inputValues.author_name?.trim() || null;
 
-  const subjects = await openlibrary.findSubjects(title, authorName);
+  const { subjects, cover_url: coverUrl } = await openlibrary.findBookInfo(
+    title,
+    authorName,
+  );
   const detectedThemes = readingText.detectThemes(title, {
     minOccurrences: 1,
     subjects,
+    language: "any",
   });
   const bookThemes = [
     ...new Set([...(inputValues.themes ?? []), ...detectedThemes]),
@@ -27,10 +31,10 @@ async function create(userId, inputValues) {
 
   const result = await database.query({
     text: `
-      INSERT INTO books (user_id, title, author_name, themes, subjects)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO books (user_id, title, author_name, themes, subjects, cover_url)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;`,
-    values: [userId, title, authorName, bookThemes, subjects],
+    values: [userId, title, authorName, bookThemes, subjects, coverUrl],
   });
 
   return result.rows[0];
@@ -41,7 +45,7 @@ async function findAllByUser(userId, { status } = {}) {
     text: `
       SELECT * FROM books
       WHERE user_id = $1 AND ($2::text IS NULL OR status = $2)
-      ORDER BY status ASC, created_at DESC;`,
+      ORDER BY status = 'finished', created_at DESC;`,
     values: [userId, status ?? null],
   });
 

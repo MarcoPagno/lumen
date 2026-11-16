@@ -14,15 +14,16 @@ async function getHandler(request, response) {
   const readingId = request.query.reading_id;
 
   const reading = await readingModel.findById(readingId);
-  const [content, isFavorite] = await Promise.all([
+  const [content, isFavorite, nextPartId] = await Promise.all([
     readingModel.getContent(reading),
     readingFavoriteModel.isFavorite(userTryingToGet.id, reading),
+    readingModel.findNextPartId(reading),
   ]);
 
   const secureOutputValues = authorizationModel.filterOutput(
     userTryingToGet,
     "read:reading",
-    { ...reading, content, is_favorite: isFavorite },
+    { ...reading, content, is_favorite: isFavorite, next_part_id: nextPartId },
   );
 
   response.status(200).json(secureOutputValues);
